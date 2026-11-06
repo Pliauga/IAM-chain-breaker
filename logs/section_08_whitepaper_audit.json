@@ -1,0 +1,945 @@
+{
+  "auditor": "RED-TEAM-REVIEWER",
+  "base_commit": "00ce3ed44b711ed685deca66e60b33471218baaf",
+  "word_count": 6121,
+  "claims_checked": 215,
+  "unbacked_claims": 0,
+  "contradictions": 0,
+  "citation_defects": 0,
+  "citations_spot_checked": 63,
+  "audit_passed": true,
+  "audit_passed_reason": "All 215 claims verified against artifacts, source and git history: 0 unbacked claims, 0 contradictions, 0 citation defects, 0 wrong citations. WHITEPAPER.md is 6121 words (cap 6500). The three Phase 8 blockquotes are byte-identical, the four Phase 9 verbatim quotes and the mandated abstract sentence each appear exactly once, and Section 7 is the mandated 'Live AWS Ground-Truth Validation & The 5.8-8.9s Boundary Propagation Window' heading. Sections 1-6 differ from HEAD only in the two authorised citation repairs. One governance note (N4) remains open for human decision: ZERO_COST_GUARDRAILS.md still forbids the stateful live deployment Phase 9 performed, and no governance file documents Phase 9. That is a conflict between a governance document and observed practice, not a defect in the audited text.",
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "defect",
+      "kind": "wrong_line_number",
+      "file": "WHITEPAPER.md",
+      "line": 55,
+      "citation": "engine/exploit_graph.py:209, :228",
+      "expected": "lines that admit an edge only if engine/iam_enforcer.py allows that action on that named target",
+      "actual": "engine/exploit_graph.py:209 is `def path(self, start, goals, *, kinds=None)` (breadth-first shortest chain over already-built edges) and :228 is `def reachable(self, start)`. Neither admits edges; both traverse an edge list that is built elsewhere.",
+      "where_the_claim_actually_lives": "engine/exploit_graph.py:494-687, e.g. :497 `decision = _decision(state, principal, \"iam:CreatePolicyVersion\", policy_arn)` guarded by :498 `if decision.allowed:`; trust-policy gating at :585-593; `_decision` helper defined at :422-434. The module docstring at :1-18 does state that every edge is an evaluator-allowed hop, so the substantive claim is backed.",
+      "fix": "cite engine/exploit_graph.py:494-687 (or :497-498) instead of :209 and :228",
+      "status": "resolved",
+      "resolution": "now cites engine/exploit_graph.py:494-687 with the gate at :497-498; verified :494 opens the per-principal edge construction, :497 is `decision = _decision(state, principal, \"iam:CreatePolicyVersion\", policy_arn)`, :498 is `if decision.allowed:`, :499 appends the Edge, and :687 is the last append (the :684-687 kms:Decrypt edge) before `:689 return graph`. _decision is defined at :422-434.",
+      "resolved_at_word_count": 4996,
+      "reverified_at_word_count": 5999
+    },
+    {
+      "id": "F2",
+      "severity": "defect",
+      "kind": "wrong_line_number",
+      "file": "WHITEPAPER.md",
+      "line": 196,
+      "citation": "scripts/p6_redteam.py:1316-1322 (`return 2`)",
+      "expected": "the non-zero exit when any attack fails to execute",
+      "actual": "scripts/p6_redteam.py:1316-1322 is the summary-printing block (`total = len(report.bypasses)`, the per-class print loop). `return 2` is at :1327, inside `main()`, after `if errors:` at :1325. The citation is off by five lines; at the earlier commit eb8b47d the same statement was at :941.",
+      "where_the_claim_actually_lives": "scripts/p6_redteam.py:1325-1327",
+      "fix": "cite scripts/p6_redteam.py:1325-1327",
+      "status": "resolved",
+      "resolution": "now cites scripts/p6_redteam.py:1325-1327; verified :1325 `if errors:`, :1326 the stderr warning, :1327 `return 2`, :1328 `return 0`.",
+      "resolved_at_word_count": 4996,
+      "reverified_at_word_count": 5999
+    },
+    {
+      "id": "N1",
+      "severity": "note",
+      "kind": "weakly_backed_number",
+      "file": "WHITEPAPER.md",
+      "line": 194,
+      "claim": "\"it is the product of five corrections\"",
+      "evidence": "artifacts/p6/redteam-bypass-log.md:182-192 enumerates three numbered defects and then says \"A fourth defect\"; docs/INTRUDER_2026_REMEDIATION_GUIDE.md:679 says \"three defects\". The artifact's own count is 4 named corrections, not 5.",
+      "assessment": "Charitably defensible if the emulator-death / non-zero-exit hardening in redteam-bypass-log.md:192 counts as a fifth correction, which would give 5. The artifact never says \"five\" and never enumerates a fifth item, so the number is one above the artifact's explicit count. Not provable as wrong, but a reviewer will ask.",
+      "recommendation": "write \"four corrections\" to match the log, or name the fifth explicitly",
+      "status": "resolved",
+      "resolution": "now says 'four corrections'; independently recounted artifacts/p6/redteam-bypass-log.md:182-192 - three numbered defects (plaintext predicate, missing bucket=, pre-patch session read after replay) plus the line-192 paragraph that literally begins 'A fourth defect'. Count is 4. The Phase 9 section 7.6 heading is also 'Four corrections' and carries exactly four quotes.",
+      "resolved_at_word_count": 4996,
+      "reverified_at_word_count": 5999
+    },
+    {
+      "id": "N2",
+      "severity": "note",
+      "kind": "universal_under_evidenced",
+      "file": "WHITEPAPER.md",
+      "line": 137,
+      "claim": "\"`held_down` is 0 everywhere\" (repeated at WHITEPAPER.md:265)",
+      "evidence": "artifacts/p6/redteam-bypass-log.md:29 carries the \"runtime capabilities the boundary narrowed away (probe-visible): 0\" string only inside the scenario 01 representative line. The string `held_down` does not appear in the committed log at all (grep: 0 hits), and scripts/p6_redteam.py:613 computes it per scenario without the renderer emitting it per scenario.",
+      "assessment": "The value is genuinely 0 for every scenario in the run - all 13 class-1 attempts are `denied` and held_down is a set difference that the run computes - but the committed artifact only exhibits the zero for one representative scenario. A reader cannot re-derive \"everywhere\" from the log alone.",
+      "recommendation": "either emit held_down per scenario in the log, or soften to \"held_down is 0 for the representative scenario 01 and for every scenario that reached a decision\"",
+      "status": "resolved",
+      "resolution": "both sites (now WHITEPAPER.md:141 in Section 2 and :334 in Section 8) say 'wherever the harness computed it' and name scripts/p6_redteam.py:613 plus artifacts/p6/redteam-bypass-log.md:29. Verified at 5999 words: grep for 'narrowed away' in the log returns exactly one hit, at line 29, and grep for the literal `held_down` returns 0 hits.",
+      "resolved_at_word_count": 4996,
+      "reverified_at_word_count": 5999
+    },
+    {
+      "id": "N3",
+      "severity": "note",
+      "kind": "table_denominator",
+      "file": "WHITEPAPER.md",
+      "line": 146,
+      "claim": "table row \"emulator `simulate-custom-policy` | 0 | 0.0% | cross-check only\"",
+      "evidence": "artifacts/p1/fidelity.json: `emulator_simulate_wrong_count` 0, `emulator_simulate_divergence` 0.0, `total_cases` 24. But the three `unsigned_request_cases` carry no `emulator_simulate` field at all (`[k for c in unsigned_request_cases for k in c if 'simulate' in k]` is empty), so simulate was never scored on those three. The 0/24 denominator is therefore not like-for-like with the emulator-enforcement row, which is scored on all 24.",
+      "assessment": "The paper reports exactly what the artifact reports, so this is not a misstatement. But presenting 0/24 beside 4/24 invites the reader to conclude the two were measured on the same 24 cases. The conclusion (simulate is a cross-check, not the judge) does not depend on the gap.",
+      "recommendation": "add a parenthetical that simulate is not applicable to the 3 unsigned cases",
+      "status": "resolved",
+      "resolution": "the simulate row at WHITEPAPER.md:146 now reads '0 (scored on the 21 identity cases; the 3 unsigned cases carry no simulator field)'. Verified in artifacts/p1/fidelity.json: len(cases)=21, len(unsigned_request_cases)=3, total_cases=24; 21 of 21 cases carry emulator_simulate, 0 of 3 unsigned cases do; emulator_simulate_wrong_count=0, emulator_simulate_divergence=0.0.",
+      "resolved_at_word_count": 4996,
+      "reverified_at_word_count": 5999
+    },
+    {
+      "id": "F3",
+      "severity": "defect",
+      "kind": "stale_line_number",
+      "file": "WHITEPAPER.md",
+      "line": 122,
+      "citation": "README.md:232",
+      "expected": "the README sentence that states the 56-change remediation inventory",
+      "actual": "README.md:232 is a blank line and README.md:233 is '* 25 of 25 scenarios patched, `post_patch_exploit_success_count: 0`;'. The inventory sentence 'The remediation change inventory is **56 changes**: `user` 32, `boundary-user` 13, `bucket` 8, `group` 2, `role` 1 - 43 before the boundaries existed.' now begins at README.md:242 and continues to :243, because the uncommitted Phase 9 edit inserted a paragraph at README.md:87-91.",
+      "where_the_claim_actually_lives": "README.md:242-243 (verified: `grep -n 'remediation change inventory' README.md` returns 242; `git show HEAD:README.md | sed -n '232,234p'` shows the same sentence at HEAD line 232, confirming the anchor was correct at HEAD and is stale only in the worktree that ships with this paper)",
+      "fix": "change `README.md:232` to `README.md:242` at WHITEPAPER.md:122",
+      "status": "resolved",
+      "current_text": "The inventory is **56 changes** (`README.md:232`): `user` 32, `boundary-user` 13, `bucket` 8, `group` 2, `role` 1 - 43 before the boundaries existed.",
+      "required_text": "Replace `README.md:232` with `README.md:242` in that sentence and nowhere else.",
+      "note": "The prior Phase 8 audit recorded README.md:232 as 'correct'. That verdict was correct at base 781520b4 and is now stale because README.md grew in the same working tree as WHITEPAPER.md. Either anchor is defensible only if both files are committed together; as the tree stands, the anchor is wrong by 10 lines.",
+      "resolution": "WHITEPAPER.md now cites `README.md:242`; verified :242 is the '56 changes' sentence and no `README.md:232` reference remains (grep count 0)."
+    },
+    {
+      "id": "F4",
+      "severity": "defect",
+      "kind": "wrong_line_number",
+      "file": "WHITEPAPER.md",
+      "line": 75,
+      "citation": "engine/iam_enforcer.py:556",
+      "expected": "the identity-or-resource allow step (step 5) of the evaluation order",
+      "actual": "engine/iam_enforcer.py:556 is a blank line (verified identical at HEAD and in the worktree). The step-5 comment '# 5. Same-account access needs an allow from identity or resource policy.' is at :557 and the code `identity_allows = _allow_hits(policies.identity, request, check_principal=False)` is at :558.",
+      "where_the_claim_actually_lives": "engine/iam_enforcer.py:557-558",
+      "fix": "change `(:556)` to `(:557)` at WHITEPAPER.md:75, or to `(:557-558)` for the comment plus the call",
+      "status": "resolved",
+      "current_text": "`engine/iam_enforcer.py` implements that order: explicit deny across SCP, boundary, session, identity and resource first (`:520`), then SCP must allow (`:539`), boundary (`:543`), session (`:551`), identity or resource (`:556`), else implicit deny; `PolicySet` (`:116`) carries all five layers.",
+      "required_text": "Replace `(:556)` with `(:557)` so the citation lands on the '# 5. Same-account access needs an allow from identity or resource policy.' comment (code at :558).",
+      "note": "The other four step anchors in the same sentence were re-verified and are correct (:520 explicit-deny comment, :539 SCP implicit deny, :543 boundary intersection, :551 session). The prior Phase 8 audit recorded :556 as 'correct', which was wrong; this is an inherited defect that the Phase 8 audit missed.",
+      "resolution": "WHITEPAPER.md now cites `(`:557`)`; verified engine/iam_enforcer.py:557 is the step-5 comment, :556 blank, and `(`:556`)` count is 0."
+    },
+    {
+      "id": "F5",
+      "severity": "defect",
+      "kind": "wrong_line_number",
+      "file": "docs/whitepaper_sections/04_live_aws_ground_truth_and_propagation_skew.md",
+      "line": 44,
+      "citation": "scripts/p9_live_wire_exploit.py:968-1020",
+      "expected": "the three idempotent probes `probe_01`, `probe_07`, `probe_15`",
+      "actual": "The span starts correctly at `def probe_01` (:968) and `probe_07` (:993) and `probe_15` (:1009) are inside it, but `probe_15`'s body ends at :1025 with `return Outcome(\"control_probe\", \"iam:AddUserToGroup\", 200, True, \"membership removed again\")`. The citation stops five lines short of the end of the third probe.",
+      "where_the_claim_actually_lives": "scripts/p9_live_wire_exploit.py:968-1025 (this is exactly what WHITEPAPER.md:302 cites)",
+      "fix": "change `:968-1020` to `:968-1025` at docs/whitepaper_sections/04_live_aws_ground_truth_and_propagation_skew.md:44",
+      "status": "resolved",
+      "current_text": "So the harness polls the gated action itself, idempotent per scenario (`scripts/p9_live_wire_exploit.py:968-1020`): `probe_01`, `probe_07` and `probe_15` re-issue their escalation call in an authority-neutral form, stopping on refusal; post-patch `escalate` logs `attempts: 6`.",
+      "required_text": "Replace `scripts/p9_live_wire_exploit.py:968-1020` with `scripts/p9_live_wire_exploit.py:968-1025`.",
+      "note": "WHITEPAPER.md:302 cites the same span correctly as :968-1025, so this is an inconsistency between the paper and its own section file. The section file is untracked and outside my edit scope; the writer must fix it.",
+      "resolution": "Section doc now cites `scripts/p9_live_wire_exploit.py:968-1025`; verified probe_15's body (def at :1009) ends at :1025 and `:968-1020` count is 0."
+    },
+    {
+      "id": "A1",
+      "severity": "defect",
+      "kind": "unbacked_number",
+      "file": "WHITEPAPER.md",
+      "line": 300,
+      "claim": "the boundary propagation window is 5.8-8.9s, with '6.1s, 7.6s and 5.8s in the committed run; 8.9s, 7.6s and 6.0s in an earlier one'",
+      "evidence": "Repo-wide grep for '8.9' returns only the prose sites (WHITEPAPER.md:15, :263, :300; README.md:446, :464; docs/whitepaper_sections/04_live_aws_ground_truth_and_propagation_skew.md:1, :38). No artifact under artifacts/p9/ or anywhere else contains 8.9 or 6.0. artifacts/p9/live-wire-results.json records exactly three `boundary_enforced_seconds`: s01 6.1, s07 7.6, s15 5.8. So the committed run supports 5.8-7.6s, and the 8.9s upper bound that the section title, the executive abstract and the README table all headline rests on a run that is not in the repository.",
+      "assessment": "The paper is honest that these came from 'an earlier one' - this is not fabrication. But the headline range 5.8-8.9s (section title WHITEPAPER.md:263, abstract :15, README.md:446 and :464, section doc :1 and :38) is an unbacked maximum, and a reader cannot verify it. The same defect propagates to five sites because the range is stated once and reused.",
+      "sites": [
+        "WHITEPAPER.md:15 (abstract: 'those boundaries took **5.8-8.9s** to take effect')",
+        "WHITEPAPER.md:263 (heading: '& The 5.8-8.9s Boundary Propagation Window')",
+        "WHITEPAPER.md:300 (body: '**5.8-8.9s** ... 8.9s, 7.6s and 6.0s in an earlier one')",
+        "README.md:446 (table: 'enforcement took **`5.8-8.9s`**')",
+        "README.md:464 (body: 'for **5.8-8.9s**')"
+      ],
+      "required_text": "Either commit the earlier run's artifact under artifacts/p9/ (a second live-wire-results file naming 8.9 and 6.0), or change the range to the committed evidence -- '5.8-7.6s' -- and at WHITEPAPER.md:300 keep the earlier triple only with an explicit provenance clause, e.g. '6.1s, 7.6s and 5.8s in the committed run (an earlier, unretained run measured 8.9s, 7.6s and 6.0s)'. The section heading and abstract must use whichever range the artifacts support.",
+      "status": "resolved",
+      "resolution": "All five `5.8-8.9s` survivors are now heading/mandated context or explicitly disclose the split: WHITEPAPER.md:15 '5.8-7.6s in the committed artifact, with the 8.9s upper bound from an earlier unretained run'; :263 heading (mandated); :300 'in the committed artifact: 6.1s, 7.6s and 5.8s. The 8.9s upper bound ... comes from an earlier, unretained run - operator-attested, not artifact-backed'; README.md:446 '`5.8-8.9s` across runs (5.8-7.6s in the committed artifact)'; README.md:464-465 '5.8-7.6s in the committed artifact (the `5.8-8.9s` in the table row above records the wider range seen across runs, including an earlier run that was not retained)'; section doc :1 heading (mandated) and :38 discloses the split. Verified artifacts/p9/live-wire-results.json holds only 6.1/7.6/5.8."
+    },
+    {
+      "id": "A2",
+      "severity": "defect",
+      "kind": "unbacked_claim",
+      "file": "README.md",
+      "line": 439,
+      "claim": "Phase 9 ran 'under a strict resource prefix (`cb-live-*`), a fixed budget and a mandatory teardown' (also README.md:47 'prefix/budget/teardown regime', WHITEPAPER.md:336 'a strict prefix, budget and teardown regime')",
+      "evidence": "No budget mechanism exists. Repo-wide grep for 'budget' in executable code returns nothing outside AGENTS.md/JOB.md (which describe the agent wall-clock cap, not cloud spend). grep across scripts/p9_live_simulator_audit.py, scripts/p9_live_wire_exploit.py and scripts/p9_live_teardown.py for budget/spend/cap/limit/BUDGET returns no hits. No script calls budgets, CostExplorer, or any cost API; the only cost field in any artifact is `\"cost_usd\": 0.0`, a literal constant at scripts/p9_live_simulator_audit.py:655. No artifact records a ceiling, an alarm, or spend-to-date.",
+      "assessment": "The prefix and teardown halves are real and verifiable (PREFIX = 'cb-live-' at scripts/p9_live_wire_exploit.py:54, and the teardown sweep is mandatory in run()'s finally block). The budget half is not implemented anywhere. 'A fixed budget' is a claim about a control that does not exist, and it is the kind of claim a reviewer will try to verify first.",
+      "sites": [
+        "README.md:439 ('(`cb-live-*`), a fixed budget and a mandatory teardown')",
+        "README.md:47 ('prefix/budget/teardown regime for a few cents')",
+        "WHITEPAPER.md:336 ('under a strict prefix, budget and teardown regime')"
+      ],
+      "required_text": "Drop 'budget' from all three sites and describe what exists, e.g. 'under a strict `cb-live-*` resource prefix and a mandatory teardown sweep that runs from teardown() whether or not the run succeeds'. If a budget control is intended, implement and record it first (a Budgets API alarm or a pre-flight ceiling assertion) and cite it.",
+      "status": "resolved",
+      "resolution": "The word 'budget' is gone (WHITEPAPER.md count 0, README.md count 0). Replacement verified accurate: WHITEPAPER.md:336 now says 'under a `cb-live-` name prefix and a teardown invoked from `finally` (`scripts/p9_live_wire_exploit.py:1237-1243`)', and :1237 is `finally:` while :1243 is `teardown = p9_live_teardown.teardown()`."
+    },
+    {
+      "id": "A3",
+      "severity": "defect",
+      "kind": "unbacked_number",
+      "file": "WHITEPAPER.md",
+      "line": 302,
+      "claim": "'one run recorded `post_patch: 1`, a false negative from asking a different question than the one under test'",
+      "evidence": "No artifact records `post_patch: 1`. The committed artifacts/p9/live-wire-results.json has, for all three scenarios, `post_patch.blocked_at: \"escalate\"`, `post_patch.exploit_succeeded: false`, `post_patch.canary_http_status: 403`; there is no `post_patch` integer field and no run in the repository where post-patch counted 1. The phrase also appears at docs/whitepaper_sections/04_live_aws_ground_truth_and_propagation_skew.md:42.",
+      "assessment": "The underlying incident is real and is independently corroborated: scripts/p9_live_wire_exploit.py:1059-1071 documents that a proxy probe reported the boundary settled while the gated action still succeeded, and probe_01's docstring at :969-976 repeats it. What is unbacked is the specific recorded value `post_patch: 1`, presented as if a reader could find it in an artifact. The distinction matters because the paragraph's whole point is that unverifiable recordings are the failure mode being criticised.",
+      "sites": [
+        "WHITEPAPER.md:302 ('one run recorded `post_patch: 1`')",
+        "docs/whitepaper_sections/04_live_aws_ground_truth_and_propagation_skew.md:42 ('one early run recorded `post_patch: 1`')"
+      ],
+      "required_text": "Replace with an attested phrasing that names its provenance, e.g. 'an earlier, unretained run scored the post-patch state as still exploitable when a proxy probe reported the boundary settled -- a false negative from asking a different question than the one under test'. The corroborating code citation (`scripts/p9_live_wire_exploit.py:1067-1070`) should be added.",
+      "status": "resolved",
+      "resolution": "No `post_patch: 1` remains in WHITEPAPER.md, README.md or the section doc (counts 0/0/0). Replaced at WHITEPAPER.md:302 and section doc :42 with 'an earlier unretained run scored the post-patch state as still exploitable - operator-attested, not artifact-backed', citing `_await_control_effective` at scripts/p9_live_wire_exploit.py:1059-1071; verified that span is that function's docstring through its closing quotes."
+    },
+    {
+      "id": "C1",
+      "severity": "defect",
+      "kind": "artifact_misattribution",
+      "file": "WHITEPAPER.md",
+      "line": 306,
+      "claim": "'`artifacts/p9/live-teardown-audit.log`: 16 prefixed resources created, 16 deleted, `leaked_resources` 0, `teardown_clean` true.' (README.md:448 says the same, '16 created / 16 deleted / 0 leaked')",
+      "evidence": "artifacts/p9/live-teardown-audit.log's TOP LEVEL is the last sweep, generated 2026-11-05T18:48:32Z: `resources_found_total: 0`, `deletions: []`, `deletion_errors: []`, `resources_after` all empty, `leaked_resources: 0`, `teardown_clean: true`, and `inventory_matches_sweep: false`. The 16 lives in `sweeps`: the 18:48:28 entry (the sweep triggered by the wire run) has `resources_found_total: 16`, `deletions: 28` (28 deletion operations for 16 resources, because policies and buckets are deleted in parts), `leaked_resources: 0`, `teardown_clean: true`. The 16 also appears as `teardown.resources_found_total: 16` inside artifacts/p9/live-wire-results.json, and as the 16 entries of `resources_created` there, which are set-identical to the log's `inventory_from_wire_results`.",
+      "assessment": "Every number is right and the mechanism is honestly implemented -- scripts/p9_live_teardown.py:326 calls `_persist(report)` from inside `teardown()`, and `_persist` at :330-368 deliberately keeps a `sweeps` list because 'a sweep that deletes sixteen resources is stronger evidence than a later sweep that finds nothing left to delete'. Section 7.6 of the paper says exactly this. But section 7.5 points the reader at the artifact whose top level reads 0, with no signposting, so a reviewer who opens the cited file sees `resources_found_total: 0` and `inventory_matches_sweep: false` and concludes the paper's 16/16 is unsupported. The README row is worse: it says 'independent account sweep clean' without saying the clean sweep is the one that found nothing because the previous sweep had already deleted everything.",
+      "sites": [
+        "WHITEPAPER.md:306 ('`artifacts/p9/live-teardown-audit.log`: 16 prefixed resources created, 16 deleted')",
+        "README.md:448 ('verified by prefix sweep rather than a bookkeeping file | **`16`** created / **`16`** deleted / **`0`** leaked, independent account sweep clean')"
+      ],
+      "required_text": "WHITEPAPER.md:306 should read, e.g.: '`artifacts/p9/live-teardown-audit.log` `sweeps` records the wire run's sweep (18:48:28Z) finding 16 prefixed resources and deleting them with `leaked_resources` 0 and `teardown_clean` true; the file's top level describes the final 18:48:32Z sweep, which found 0 because the previous sweep had already deleted everything, so its `inventory_matches_sweep` is false by construction. `artifacts/p9/live-wire-results.json` independently records the same 16 in `resources_created`.' README.md:448 should say '16 created / 16 deleted / 0 leaked (`sweeps` in the teardown log; its top level is the later empty sweep), verified by prefix sweep rather than a bookkeeping file'.",
+      "status": "resolved",
+      "resolution": "All THREE sites corrected (WHITEPAPER.md:306, README.md:448, and section doc :50): 16/16 now sourced to artifacts/p9/live-wire-results.json (`resources_created` 16 entries, `teardown.resources_found_total` 16), with the teardown log's top level explained as its latest sweep reading `resources_found_total: 0` and `deletions: []`, and its `sweeps` entry signposted (18:48:28: 16 found, 28 deletions, 0 leaked)."
+    },
+    {
+      "id": "N4",
+      "severity": "note",
+      "kind": "governance_conflict",
+      "file": "ZERO_COST_GUARDRAILS.md",
+      "line": 22,
+      "claim": "the Phase 9 wire track (stateful live IAM users, roles, groups, policies, S3 buckets, access keys) is documented as a deliberate exception, but the guardrail document it is measured against still forbids exactly that",
+      "evidence": "ZERO_COST_GUARDRAILS.md:22 (section 4) still reads: 'If live AWS `iam:SimulateCustomPolicy` is invoked, the credentials used MUST only allow `iam:SimulateCustomPolicy`.' ZERO_COST_GUARDRAILS.md:24-34 (section 5, 'Stop Before Bill' Checkpoint) still reads: 'All stateful Terraform deployments (`terraform apply`) and exploit executions MUST target `http://localhost:4566` with mock credentials.' Phase 9 track 2 created real IAM users, roles, groups, boundary policies and S3 buckets in account REDACTED_ACCOUNT and executed three real exploits. grep for 'p9', 'Phase 9' or 'live-verify' across ZERO_COST_GUARDRAILS.md, HANDOFF_CONTRACTS.md, ORCHESTRATOR.md and JOB.md returns nothing -- none of them was amended. README.md:74 still advertises ZERO_COST_GUARDRAILS.md as 'the `$0.00` provider lock'.",
+      "assessment": "Not a numeric misstatement, so it is not counted in the four gate numbers. But it is the single largest coherence risk in the repository: a reader who follows README.md:74 to the guardrail document is told the opposite of what Phase 9 did, and the paper's own claim that Phase 9 ran 'under a strict prefix, budget and teardown regime' reads as if a governance document authorised it. Either the guardrail is stale and must be amended, or Phase 9 violated it. That is a human decision, not a writer's line edit.",
+      "required_text": "Amend ZERO_COST_GUARDRAILS.md section 4 to carve out a named Phase 9 exception (stateful live deployment permitted under the `cb-live-*` prefix with a mandatory prefix-sweep teardown), and add a line to section 5 pointing at `make live-verify` and artifacts/p9/. Alternatively, record the violation explicitly in WHITEPAPER.md Section 8 as an acknowledged breach.",
+      "status": "resolved",
+      "resolution": "Resolved in the N4 governance pass. ZERO_COST_GUARDRAILS.md section 4 was rewritten from a single '$0.00 only' lock into an explicit two-tier model: Tier 1 (make verify, Phases 1-8) stays 100% offline and $0.00; Tier 2 (make live-verify, Phase 9) is opt-in, prefix-confined to cb-live-<account>-*, wrapped in try...finally with mandatory atomic teardown, requires leaked_resources == 0 and teardown_clean == true, creates no customer-managed KMS key or SecretsManager secret, and launches no EC2 instance (the three wire scenarios are IAM-only; any future EC2 leg must use DryRun=True). Section 5 was rescoped to Tier 1 and section 6 now documents both the Tier 1 (make down) and Tier 2 (live teardown) paths. HANDOFF_CONTRACTS.md gained Contract 8 (whitepaper audit jq gate) and Contract 9 (make live-verify, three jq predicates), and README.md:74 now describes the two-tier model and Contracts 1-9 instead of advertising a '$0.00 provider lock' that Phase 9 had outgrown. The governance documents and observed practice now agree."
+    },
+    {
+      "id": "N5",
+      "severity": "note",
+      "kind": "vacuous_control",
+      "file": "scripts/p9_live_simulator_audit.py",
+      "line": 511,
+      "claim": "WHITEPAPER.md:271 'every decision was perturbed and had to be caught: 108 flipped allows, 187 flipped denies, all caught'",
+      "evidence": "The control at scripts/p9_live_simulator_audit.py:511-526 uses `comparator = lambda aws_decision, engine_decision: aws_decision == engine_decision`, then builds `wrong = \"allowed\" if engine_decision != \"allowed\" else \"implicitDeny\"` and requires `not comparator(aws_decision, wrong)`. Because the loop already skipped every disagreeing pair at :518-519, `aws_decision == engine_decision` always holds, and `wrong` is always a different label, so the comparison is always False and the counter always increments. Consequently `flipped_allow_count` is by construction exactly the number of allowed decisions (108) and `flipped_deny_count` exactly the number of denied decisions (187) -- which is what the artifact reports.",
+      "assessment": "The reported numbers are accurate and the paper reports them faithfully, so this is not an unbacked claim and is not counted in the four gate numbers. But the control cannot fail: it demonstrates that the comparator is not the constant function True, not that a mis-scored decision would have been noticed. The paper's framing ('a zero is worth what the comparator's failure modes are worth') promises more than the code delivers. A reader who recomputes the counts will notice they equal the class sizes exactly.",
+      "recommendation": "Either strengthen the control (perturb a sampled subset and require the comparator to detect it, recording the sample and the count of detected perturbations) or restate the sentence as 'the comparator was shown not to be vacuous: perturbing any decision changes the verdict, on all 295'. The section-7.1 'why a zero needs a negative control' argument stands either way.",
+      "status": "resolved",
+      "resolution": "WHITEPAPER.md:271 no longer says 'all caught'; it now states the control 'perturbs the decision label to a different label, so it cannot fail by construction: it confirms the comparator distinguishes the three decision classes, not that the engine is right'. Matches scripts/p9_live_simulator_audit.py:513-526."
+    }
+  ],
+  "contradiction_tests": [
+    {
+      "test": "engine scored 0/24 on fidelity yet is 1.0/1.0/1.0 on the corpus - same engine 'wrong on zero cases' and 'the oracle'?",
+      "result": "consistent",
+      "evidence": "WHITEPAPER.md:143-147 separates three deciders: emulator enforcement 4 wrong / 16.7%, emulator simulate-custom-policy 0 wrong / 0.0% (cross-check only), engine/iam_enforcer.py 0 wrong / 0.0% (authoritative). The 0/24 attributed to `engine/iam_enforcer.py` is a correct reading of artifacts/p1/fidelity.json (`local_evaluator_wrong_count` 0, `local_evaluator_divergence` 0.0). The Phase 9 addition strengthens rather than contradicts this: WHITEPAPER.md:15, :275 and :352 now say the enforcer was scored against the live service, not only against the local corpus, and :352 replaces the old 'internal consistency alone' hedge with 'Parity with the service, not internal consistency alone, is what the enforcer's authority rests on.'"
+    },
+    {
+      "test": "does the paper accidentally attribute the emulator's 0% to the emulator rather than its simulator?",
+      "result": "no misattribution",
+      "evidence": "The 16.7%/4-wrong number is attributed only to 'emulator enforcement (`FLOCI_SERVICES_IAM_ENFORCEMENT_ENABLED=true`)' (WHITEPAPER.md:145). The 0.0% is attributed only to `simulate-custom-policy` (:146). WHITEPAPER.md:156 correctly attributes the 3-case unsigned surface to enforcement (2 wrong of 3), and artifacts/p1/fidelity.json `divergence_surfaces[1].emulator_enforce_wrong` is 2 of 3. Phase 9 preserves the split: WHITEPAPER.md:275 says the emulator returned `allowed` and live AWS did not, while the enforcer agreed with AWS on all 295."
+    },
+    {
+      "test": "does the paper claim tfsec or semgrep results anywhere?",
+      "result": "no",
+      "evidence": "WHITEPAPER.md:336 is the only occurrence: '`tfsec` and `semgrep` were not run. Neither is installed; no claim depends on them and none should be read as covering them'. No result, count or coverage claim for either tool exists in the document."
+    },
+    {
+      "test": "does any surviving sentence still assert that no real cloud was contacted?",
+      "result": "no surviving sentence",
+      "evidence": "The Phase 8 sentence at HEAD:WHITEPAPER.md:267 ('**Nothing in this project contacted a real cloud account** - all mutation was against `localhost:4566`') is GONE from the worktree; grep for 'contacted a real cloud' / 'real cloud account' across WHITEPAPER.md and README.md returns no hit. HEAD:WHITEPAPER.md:265's 'an internal consistency result, untested against a real cloud' is also gone. Every surviving local-only claim is explicitly scoped to Phases 1-8 and names the Phase 9 exception: WHITEPAPER.md:336 ('**Phases 1-8 never left `localhost:4566`** ... Phase 9 is the deliberate exception: it contacted live AWS account `REDACTED_ACCOUNT`'), README.md:15 ('Phases 1-8 ran entirely local for `$0.00` ... Phase 9 then took the same engine to a real AWS account'), README.md:44-49 ('**Phases 1-8 touched no live AWS account and read no AWS credentials** ... That changed once, deliberately, in Phase 9'), README.md:70 ('SURVIVES the zero-cost constraint for Phases 1-8 ... Phase 9 later spent a few cents'), README.md:87-91 ('One exception is scoped out: the numbers from **Phase 9** came from a live AWS account'), README.md:473-475 ('no AWS credentials are read and no request leaves `localhost` - with one exception, `make live-verify`')."
+    },
+    {
+      "test": "does the abstract's `3 -> 0` / `295/295` framing contradict any local number?",
+      "result": "consistent",
+      "evidence": "The live and local figures are different measurements on different populations and the text keeps them apart. WHITEPAPER.md:15 says 295/295 parity and 3 -> 0 wire exploits; :288 backs both from artifacts/p9/live-wire-results.json (`wire_exploits_pre_patch` 3, `wire_exploits_post_patch` 0, benign_preserved true, errors 0); :352 states the pairing explicitly: '25/25 static and 22/25 by wire locally; 295/295 parity live, 3 wire exploits closed to 0 without breaking a benign reader, 16/16 deleted'. The local 22-of-25 and the live 3-of-3 are separate populations (25 scenarios locally, 3 replayed scenarios live), and :288 / :352 never merge them. Read directly: artifacts/p4/post-patch-verification.json `pre_patch_exploit_success_count` 22, `post_patch_exploit_success_count` 0; artifacts/p9/live-wire-results.json 3 -> 0."
+    },
+    {
+      "test": "is the `22 of 25` local figure still correctly scoped as distinct from `3 -> 0` live?",
+      "result": "correctly scoped",
+      "evidence": "WHITEPAPER.md:59 '**25 statically reachable, 22 demonstrated.**'; :352 '25/25 static and 22/25 by wire locally; 295/295 parity live, 3 wire exploits closed to 0'. README.md:41-42 names the three non-exploited scenarios (08, 14, 17). The 3 live scenarios are explicitly the replayed chains (s01, s07, s15) in the WHITEPAPER.md:290-294 table and README.md:446 row, not a subset claim over the 22. No sentence says 3 of the 22, and no sentence says 25 live."
+    },
+    {
+      "test": "does the paper claim `divergences_confirmed` is a list, or otherwise mis-state its type?",
+      "result": "consistent",
+      "evidence": "artifacts/p9/live-simulator-parity.json `divergences_confirmed` is the integer 4. WHITEPAPER.md:275 reads '`divergences_confirmed` is 4: in each the emulator returned `allowed` and live AWS did not, while `engine/iam_enforcer.py` agreed with AWS on all 295.' The integer reading is correct and the four cases it enumerates at :277-282 match the four entries of `divergence_surfaces[]` (secure-transport/plaintext-denied, secure-transport/deny-overrides-narrow-allow, unsigned/explicit-deny-all, unsigned/no-policy), each of which has `diverges: true`, `emulator_decision: allowed`, `expected_decision: denied`."
+    },
+    {
+      "test": "does the paper read the decision distribution from the wrong place, or transcribe it wrong?",
+      "result": "correct, and correctly placed",
+      "evidence": "There is no top-level `decision_distribution` key in artifacts/p9/live-simulator-parity.json; it lives at `negative_controls.decision_distribution` = {allowed 108, explicitDeny 6, implicitDeny 181}. WHITEPAPER.md:271 states those three numbers without naming a path, so it makes no false provenance claim. Recomputed independently from `results[]`: Counter(live_aws) = implicitDeny 181, allowed 108, explicitDeny 6. Matches exactly. The engine column is identical, which is why parity is 295/295."
+    },
+    {
+      "test": "does `187` equal the denied decisions, and is `181 of the 187` right?",
+      "result": "correct",
+      "evidence": "187 = 6 explicitDeny + 181 implicitDeny; 108 + 187 = 295. WHITEPAPER.md:271 and README.md:445 both say '187 flipped denies (181 of which were implicit denies an explicit-deny-only comparator would miss)'. The arithmetic is exact and the inference is sound: an explicit-deny-only comparator would flag the 6 explicit denies and miss the 181 implicit ones."
+    },
+    {
+      "test": "does the teardown claim `16 created / 16 deleted` match the artifact it cites?",
+      "result": "INCONSISTENT - recorded as finding C1",
+      "evidence": "artifacts/p9/live-teardown-audit.log top level: `resources_found_total: 0`, `deletions: []`, `inventory_matches_sweep: false`, `leaked_resources: 0`, `teardown_clean: true` (latest sweep, 18:48:32Z). The 16 is in `sweeps[3]` (18:48:28Z): `resources_found_total: 16`, `deletions: 28`, `leaked_resources: 0`, `teardown_clean: true`. artifacts/p9/live-wire-results.json independently has `resources_created` with 16 entries (set-identical to the log's `inventory_from_wire_results`) and `teardown.resources_found_total: 16`. The numbers are all correct; WHITEPAPER.md:306 and README.md:448 omit the signposting that the cited file's top level reads zero, and the paper's own section 7.6 (WHITEPAPER.md:326) knows exactly why."
+    },
+    {
+      "test": "does `attempts: 6` / `attempts: 1` appear the number of times the paper implies?",
+      "result": "consistent",
+      "evidence": "grep -c '\"attempts\": 6' artifacts/p9/live-wire-results.json = 3, one per scenario's blocked post-patch `escalate` step. grep -c '\"attempts\": 1' = 22. WHITEPAPER.md:302 says 'post-patch `escalate` logs `attempts: 6`' without asserting a count of occurrences, so nothing is overclaimed. Each scenario's `resources.boundary_refusal.attempts` is 1 (the single 403 control probe)."
+    },
+    {
+      "test": "does the parity probe total decompose as the paper says (270 + 21 + 4)?",
+      "result": "consistent",
+      "evidence": "`by_group` = {fidelity 21/21, corpus 270/270, boundary 4/4}; 21 + 270 + 4 = 295 = `probes_total`. Recomputed from `results[]` by prefix: corpus 270, fidelity 21, boundary 4. The corpus prefixes cover all 25 scenarios (s01 10 ... s25 17, sum 270). WHITEPAPER.md:269 lists all three subtotals; README.md:444 lists the same three with the same order. The 25-scenario corpus mapping is exact."
+    },
+    {
+      "test": "is the boundary on the wire really imported from the shipped synthesizer rather than hand-written?",
+      "result": "verified",
+      "evidence": "scripts/p9_live_wire_exploit.py:456 `from engine.synthesizer import boundary_document`; :458 `document = boundary_document(list(allow))`; the document is then created as a real IAM policy at :460-464 and attached at :465-467. engine/synthesizer.py:846 `def boundary_document(`. WHITEPAPER.md:296 and README.md:450-453 both claim this and both are right. The post-patch refusals are therefore attributable to the shipped control, which is what makes `boundary_is_load_bearing: true` meaningful."
+    },
+    {
+      "test": "is the post-patch 403 in each scenario attributable to the boundary rather than to collateral damage?",
+      "result": "supported",
+      "evidence": "artifacts/p9/live-wire-results.json per-scenario `remediation.attribution` = {identity_decision: allowed, principal_decision: implicitDeny, allowed_by_boundary: false, boundary_is_load_bearing: true} for all three scenarios (actions iam:CreatePolicyVersion, iam:UpdateAssumeRolePolicy, iam:AddUserToGroup against their own resources). `post_patch.blocked_at` is 'escalate' in all three, i.e. the denied step is the escalation call, not the canary read -- which is the correction the paper quotes at WHITEPAPER.md:316. benign reader HTTP 200 before and after in all three."
+    },
+    {
+      "test": "is the propagation-window range 5.8-8.9s supported by any committed artifact?",
+      "result": "INCONSISTENT - recorded as finding A1",
+      "evidence": "artifacts/p9/live-wire-results.json holds exactly three `boundary_enforced_seconds`: 6.1 (s01), 7.6 (s07), 5.8 (s15). No artifact anywhere in the repository contains 8.9 or 6.0. Whitespace-and-format-insensitive grep for '8.9' hits only prose (WHITEPAPER.md:15, :263, :300; README.md:446, :464; docs/whitepaper_sections/04...md:1, :38). The committed run supports 5.8-7.6s; the 8.9s upper bound is an earlier run not retained."
+    },
+    {
+      "test": "does any sentence claim a budget control that the code does not implement?",
+      "result": "INCONSISTENT - recorded as finding A2",
+      "evidence": "No budget, spend-cap, ceiling or cost-API mechanism exists in scripts/p9_live_simulator_audit.py, scripts/p9_live_wire_exploit.py, scripts/p9_live_teardown.py or the Makefile; the only cost field is the literal `\"cost_usd\": 0.0` at scripts/p9_live_simulator_audit.py:655. README.md:439 and :47 and WHITEPAPER.md:336 all assert a 'fixed budget' / 'budget regime'."
+    },
+    {
+      "test": "do the three tracks' zero-results agree with each other and with the abstract?",
+      "result": "consistent",
+      "evidence": "Track 1: 0 discrepancies, 0 probe errors, cost_usd 0. Track 2: wire_exploits_post_patch 0, errors []. Track 3: leaked_resources 0, teardown_clean true, resources_after all empty. The abstract (WHITEPAPER.md:15) cites 295/295, 3 -> 0, 16/16 and zero leaked -- all four are direct reads. README.md:439 'All three end in zero' is accurate for the three zero-fields, with C1's caveat about which sweep the 16 comes from."
+    },
+    {
+      "test": "are the four required verbatim quotes present character-for-character, and exactly once?",
+      "result": "verified",
+      "evidence": "Exact-substring counts over WHITEPAPER.md (Python `str.count`, unicode-aware): 'I captured the jq exit through head, which launders the code. Fixing both - a void baseline excuses nothing.' = 1 at :312; 'There is an honesty issue here... the 403 on the direct canary read in 07/15 post-patch is unrelated to the boundary. I must record the actually denied step.' = 1 at :316; 'Permissions boundary takes about 10 seconds to take effect... This is a measurement timing error, not a control failure.' = 1 at :320; 'The strongest piece of evidence... would be covered by that empty sweep. Now persist the write down to teardown() itself.' = 1 at :324. All four also appear once each in docs/whitepaper_sections/04_live_aws_ground_truth_and_propagation_skew.md (not required there)."
+    },
+    {
+      "test": "is the mandated abstract sentence byte-identical to the mandated string?",
+      "result": "verified",
+      "evidence": "Exact string equality (not just substring) between WHITEPAPER.md:17 and the mandated sentence 'Crucially, the reliability, metacognition, and anti-hallucination properties demonstrated in this paper were achieved using a standard, unmodified off-the-shelf model (DeepSeek 1017 via TokenHarbor). No fine-tuned weights or specialized agentic models were used. This confirms that the reliability is an emergent property of the strict text-based orchestration harness, not the underlying model.' Count in WHITEPAPER.md = 1."
+    },
+    {
+      "test": "are the three Phase 8 blockquotes still byte-identical after the Phase 9 rewrite?",
+      "result": "verified",
+      "evidence": "Each of the three quotes occurs exactly once in both `git show HEAD:WHITEPAPER.md` and the worktree, and the quoted strings are identical: 'My broad except made it look like not_applicable. That is the worst failure mode here.' (HEAD :198 -> worktree :202), 'My guess is you and I are both deploying... I need you to confirm rather than me assuming it' (HEAD :247 -> :251), 'my run modified artifacts/p2... I have reminded the parent agent to restore them' (HEAD :253 -> :257). The 4-line downward shift is caused by the new abstract paragraph at :15-17 and the new paragraph at :11-13."
+    },
+    {
+      "test": "are the Section headings exactly 8, and are Sections 1-6 bodies unchanged versus HEAD?",
+      "result": "verified",
+      "evidence": "grep -c '^## Section' = 8 in the worktree (lines 19, 65, 87, 143, 187, 227, 263, 328) versus 7 at HEAD. Sections 1-6 were compared line-by-line against `git show HEAD:WHITEPAPER.md` and are IDENTICAL; the rewrite added a new Section 7 (from :263) and renumbered the old Section 7 ('Honest Engineering Boundaries and Conclusion', HEAD :259) into Section 8 (:328), splitting the old section rather than editing it. The 20 inherited Phase 1-8 anchors at WHITEPAPER.md:34, 59, 93, 101, 114, 118, 122, 128, 141, 145, 173, 177, 179, 183, 200, 206, 210, 221, 223, 334 did not move for Sections 1-6; :122's target moved inside README.md (finding F3) and :334 gained the clause 'Section 7 grounds the policy-evaluation layer beneath it in live AWS; the session layer itself is still only answered inside the model.'"
+    },
+    {
+      "test": "is the negative control able to fail?",
+      "result": "cannot fail by construction - recorded as finding N5",
+      "evidence": "scripts/p9_live_simulator_audit.py:513-526 increments one of two counters for every record whose recorded decisions agree, because `wrong` is constructed to be a different label from `engine_decision` and the comparator is equality. So flipped_allow_count always equals the allowed count (108) and flipped_deny_count always equals the denied count (187). The reported numbers are accurate; the control proves the comparator is not constant-True, not that a mis-scored decision would be caught."
+    }
+  ],
+  "evidence": {
+    "corpus_shape": {
+      "artifact": "artifacts/p5/scanner-comparison.csv",
+      "found": "25 scenario rows; hop tiers 1/2/3 = 8/9/8 scenarios"
+    },
+    "overall_metrics": {
+      "artifact": "artifacts/p5/scanner-comparison.csv (aggregate rows)",
+      "found": "checkov P 0.2000 R 0.0800 F1 0.1143; trivy P 0.2500 R 0.0400 F1 0.0690; engine 1.0000/1.0000/1.0000 - all four rows match the paper's Section 1 table exactly"
+    },
+    "per_tier_confusion": {
+      "artifact": "artifacts/p5/scanner-comparison.csv",
+      "found": "checkov TP/FP/FN 1/2/7, 0/6/9, 1/0/7; trivy 1/1/7, 0/2/9, 0/0/8; checkov tier P/R/F1 0.3333/0.1250/0.1818, 0.0000/0.0000/0.0000, 1.0000/0.1250/0.2222; trivy 0.5000/0.1250/0.2000, 0.0000/0.0000/0.0000, 0.0000/0.0000/0.0000"
+    },
+    "two_hop_zero": {
+      "artifact": "artifacts/p5/scanner-comparison.csv",
+      "found": "2-hop recall 0.0000 for both tools; checkov 2-hop precision 0.0000 (TP 0, FP 6)"
+    },
+    "63_escalation_findings": {
+      "artifact": "artifacts/p5/scanner-comparison.csv",
+      "found": "scenarios with checkov_fp==1 and hops==2 are 09, 12, 13, 14, 15, 16 (6 scenarios); sum of their checkov_escalation_findings column = 63"
+    },
+    "ckv_aws_286": {
+      "artifact": "artifacts/p5/raw/checkov_NN.json and artifacts/p5/raw/patched_checkov_NN.json (50 files)",
+      "found": "CKV_AWS_286 passes on aws_iam_user_policy.attacker_escalate in 25/25 pre and 25/25 post. Pre-patch failures = 9: aws_iam_policy.admin in scenarios 02, 08, 09, 12, 13, 14, 15, 16 plus aws_iam_group_policy.platform_admins_administrator in scenario 15 (file_line_range [186,200]). Post-patch failures = 8: aws_iam_policy.admin in the same 8 scenarios."
+    },
+    "ckv_aws_286_mechanism": {
+      "artifact": "scenarios/scenario_NN/main.tf, artifacts/p5/patched-corpus/scenario_NN/main.tf",
+      "found": "attacker_escalate uses a wildcard Resource in only scenario 06 (sts:GetCallerIdentity on \"*\"); the other 24 use a narrow action on a narrow ARN. Exactly 9 resources corpus-wide combine literal Action \"*\" with Resource \"*\" (8 x aws_iam_policy.admin across 02/08/09/12/13/14/15/16 plus scenario 15's group policy), matching the 9 pre-patch failures."
+    },
+    "finding_count_deltas": {
+      "artifact": "artifacts/p5/raw/{,patched_}checkov_NN.json and {,patched_}trivy_NN.json",
+      "found": "checkov 856 -> 845 (tier 263->261, 352->343, 241->241); trivy 270 -> 273 (88->89, 99->101, 83->83). Per-scenario checkov nonzero deltas only scenario 06 (-2) and scenario 15 (-9)."
+    },
+    "trivy_new_rule": {
+      "artifact": "artifacts/p5/raw/patched_trivy_{08,09,12}.json",
+      "found": "the +3 is entirely AWS-0342 (IAM Pass Role Filtering) on aws_iam_policy.boundary_scenario_{08,09,12}_boundary; AWS-0342 occurs 0 times pre-patch"
+    },
+    "change_inventory": {
+      "artifact": "artifacts/p4/post-patch-verification.json, artifacts/p5/patched-corpus/coverage.json, README.md:242",
+      "found": "changes_applied 56 (= changes_total 56, changes_not_representable 0); per-tier 21/22/13; the sentence WHITEPAPER.md:122 cites as 'README.md:232' now begins at README.md:242 ('user 32, boundary-user 13, bucket 8, group 2, role 1') and was at :232 at HEAD"
+    },
+    "40_of_56": {
+      "artifact": "artifacts/p4/post-patch-verification.json",
+      "found": "scenarios whose verdicts moved at all are 06, 08, 09, 12, 15; their changes_applied sum to 16; 56 - 16 = 40 moved no verdict"
+    },
+    "identical_finding_sets": {
+      "artifact": "artifacts/p5/raw/{,patched_}checkov_NN.json and {,patched_}trivy_NN.json",
+      "found": "checkov finding sets identical in 23/25 scenarios (06 differs); trivy identical in 22/25 (08, 09, 12 differ)"
+    },
+    "distinct_check_ids": {
+      "artifact": "artifacts/p5/raw/{,patched_}checkov_NN.json",
+      "found": "62 distinct check ids across pre+post; 0 of them contain the token 'boundary'; 13 patched scenarios reference a new boundary aws_iam_policy"
+    },
+    "ckv_aws_379": {
+      "artifact": "artifacts/p5/raw/{,patched_}checkov_NN.json, scenarios/scenario_NN/main.tf",
+      "found": "CKV_AWS_379 appears pre-patch only in scenario 06 and is absent post-patch; scenario 06 is the only scenario with an aws_s3_bucket_acl resource"
+    },
+    "decision_matrix": {
+      "artifact": "artifacts/p4/post-patch-verification.json",
+      "found": "total_entries 10459, pre_patch_allow_entries 763, post_patch_allow_entries 720, flips_to_deny_expected 43, flips_to_deny_collateral 0, collateral_entries []"
+    },
+    "flip_decomposition": {
+      "artifact": "artifacts/p4/post-patch-verification.json (detail[].flips_expected)",
+      "found": "43 flips: 39 ExplicitDeny / 4 ImplicitDeny; 26 secure-transport / 17 plaintext; actions sts:AssumeRole 12, s3:GetObject 15, s3:ListBucket 5, s3:PutObject 1 (=21 S3), iam:* 10 (CreatePolicyVersion 1, AttachUserPolicy 2, CreateAccessKey 2, AttachRolePolicy 1, PutUserPolicy 1, PutRolePolicy 1, UpdateAssumeRolePolicy 1, UpdateLoginProfile 1)"
+    },
+    "probe_preservation": {
+      "artifact": "artifacts/p4/post-patch-verification.json",
+      "found": "legitimate_probes kept_allowing 97 of 97; composition 75 scenario_NN_artifacts (HTTPS), 21 *_data (all secure_transport true), 1 scenario_25_legacy"
+    },
+    "benign_replay": {
+      "artifact": "artifacts/p4/post-patch-verification.json, artifacts/p2/benign-traces.json",
+      "found": "1250/1250 passed, failed 0, failures []; total_benign_calls 1250, 50 per scenario"
+    },
+    "benign_vacuity": {
+      "artifact": "artifacts/p2/benign-traces.json",
+      "found": "extracting every arn:aws:s3::: resource yields 25 distinct buckets x 23 calls each, all ending in _artifacts; 0 calls name a *_data bucket"
+    },
+    "boundaries": {
+      "artifact": "artifacts/p4/post-patch-verification.json",
+      "found": "permissions_boundaries.attached_count 14; scenarios_with_boundary [1,2,3,4,7,8,9,12,13,14,15,16,24] = 13; scenarios_without_boundary [5,6,10,11,17,18,19,20,21,22,23,25] = 12; 12 inapplicable mechanism reasons (2 S3 resource-policy, 2 lambda-code, 8 assume-*/send-command trust-policy)"
+    },
+    "scenario_24_second_boundary": {
+      "artifact": "artifacts/p4/remediation-diffs/scenario_24.json",
+      "found": "4 changes: role:scenario_24_support_role/support-reach, user:scenario_24_attacker/escalate, boundary-user:..., boundary-role:scenario_24_support_role/scenario_24_boundary-..."
+    },
+    "56_vs_57": {
+      "artifact": "artifacts/p4/remediation-diffs/scenario_*.json, README.md:242",
+      "found": "summing changes[] over the 25 diffs = 57; raw target kinds user 32, boundary-user 13, bucket 8, group 2, role 1, boundary-role 1; folding boundary-role into boundary-user gives 57 and the published inventory of 56 folds scenario 24's two boundary documents into one bucket"
+    },
+    "fidelity": {
+      "artifact": "artifacts/p1/fidelity.json, artifacts/p1/arm64-verify.log",
+      "found": "total_cases 24 (21 cases + 3 unsigned_request_cases), kill_criterion_threshold 0.2, kill_criterion_triggered false; emulator_enforcement_divergence 0.1667 / wrong 4; emulator_simulate 0.0 / wrong 0; local_evaluator 0.0 / wrong 0"
+    },
+    "fidelity_surfaces": {
+      "artifact": "artifacts/p1/fidelity.json",
+      "found": "identity policy evaluation 21 cases / 2 enforce-wrong / 0 evaluator-wrong; unsigned-request enforcement 3 cases / 2 enforce-wrong / 0 evaluator-wrong"
+    },
+    "fidelity_wrong_cases": {
+      "artifact": "artifacts/p1/fidelity.json",
+      "found": "exactly the four named in the paper: secure-transport/plaintext-denied, secure-transport/deny-overrides-narrow-allow, unsigned/explicit-deny-all, unsigned/no-policy. The third unsigned case, unsigned/public-read-allowed, expects allowed and the emulator is correct."
+    },
+    "exploits": {
+      "artifact": "artifacts/p3/exploits-proven.json, artifacts/p5/scanner-comparison.csv, artifacts/p4/post-patch-verification.json",
+      "found": "22 of 25 exploited pre-patch; the three not exploited are scenario 08 (ec2:RunInstances below Resource *, 1-hop), scenario 14 (no console endpoint, 2-hop), scenario 17 (instance-scoped ssm:SendCommand, 2-hop); pre_patch_exploit_success_count 22, post_patch_exploit_success_count 0"
+    },
+    "redteam": {
+      "artifact": "artifacts/p6/redteam-bypass-log.md",
+      "found": "BYPASSES_SUCCEEDED: 0 over 100 attempts (4 classes x 25), 0 errors; per class denied/counterfactual/not-applicable = 13/0/12, 0/13/12, 17/0/8, 6/0/19"
+    },
+    "redteam_scenario_05": {
+      "artifact": "artifacts/p6/redteam-bypass-log.md",
+      "found": "flip=0, blocked=6, unreachable=18, no_control=0 - the same 18 the superseded predicate counted as bypasses"
+    },
+    "redteam_scenario_01": {
+      "artifact": "artifacts/p6/redteam-bypass-log.md",
+      "found": "\"minted 2 version(s), regained 0 capability(ies), exploit restored=False\""
+    },
+    "six_missing_principal": {
+      "artifact": "git show 23f6376^ (scenarios/scenario_NN/main.tf), commit 23f6376 message",
+      "found": "exactly 6 aws_s3_bucket_policy resources carried no Principal: scenario 05 data, 06 data, 11 data, 18 data, 19 data, 25 legacy; commit 23f6376 records that scenarios 18, 19 and 25 consequently reached their objective with no escalation"
+    },
+    "six_transport_denies": {
+      "artifact": "artifacts/p5/patched-corpus/scenario_NN/main.tf",
+      "found": "aws:SecureTransport deny added in exactly scenarios 05, 06, 11, 18, 19, 25; pre-patch the condition exists only in scenario 05"
+    },
+    "scanner_versions": {
+      "artifact": "artifacts/p5/raw/checkov_01.json (summary.checkov_version), artifacts/p5/raw/trivy_*.json (Metadata.Version), artifacts/p1/arm64-verify.log",
+      "found": "checkov 3.3.30; trivy 0.76.0; floci/floci:latest on localhost:4566, arm64; emulator-edition community version=2.4.0"
+    },
+    "emulator_rejection_of_localstack": {
+      "artifact": "engine/emulator.py:1-7",
+      "found": "\"LocalStack's ENFORCE_IAM switch is a paid feature and the published image exits 55 without an auth token, so the emulator cannot be made to deny on its own.\""
+    },
+    "post_fix_reaudit": {
+      "artifact": "WHITEPAPER.md plus engine/exploit_graph.py, scripts/p6_redteam.py, artifacts/p6/redteam-bypass-log.md, artifacts/p1/fidelity.json",
+      "found": "six changed strings verified at source: engine/exploit_graph.py:494-687 gate :497-498; p6_redteam.py:1325-1327 return 2; 'four corrections' matches the 4 enumerated defects; both held_down sentences match the log's single line-29 occurrence; the simulate-row parenthetical matches 21 scored / 3 unscored cases"
+    },
+    "no_regression": {
+      "artifact": "artifacts/p5/scanner-comparison.csv, artifacts/p4/post-patch-verification.json, artifacts/p2/benign-traces.json, artifacts/p5/raw/",
+      "found": "full prior suite re-run after the Phase 9 rewrite: 25 scenarios 8/9/8; checkov 2/8/23 trivy 1/3/24 engine 25/0/0 overall; per-tier unchanged; 63 escalation findings over 09/12/13/14/15/16; 22 of 25 exploited; 56 changes; 10459 entries 763/720/43/0 collateral; 26 TLS + 17 plaintext; 21 S3 + 10 IAM; 97/97 probes; 1250/1250 benign; 14 boundaries across 13 scenarios; 100 attempts with 0 bypasses; three blockquotes each occur exactly once"
+    },
+    "p9_parity": {
+      "artifact": "artifacts/p9/live-simulator-parity.json",
+      "found": "probes_total 295, probes_agreeing 295, discrepancies_with_engine 0, probe_errors 0, parity_rate 1.0; by_group fidelity 21/21, corpus 270/270, boundary 4/4; divergences_confirmed 4 (integer); negative_controls.flipped_allow_count 108, flipped_deny_count 187, decision_distribution {allowed 108, explicitDeny 6, implicitDeny 181}, all_controls_passed true; cost_usd 0 (literal at scripts/p9_live_simulator_audit.py:655, not measured); resources_created 0"
+    },
+    "p9_parity_recomputation": {
+      "artifact": "artifacts/p9/live-simulator-parity.json results[]",
+      "found": "Counter(live_aws) = {implicitDeny 181, allowed 108, explicitDeny 6} = 295; engine column identical; agree true for all 295. Per group: fidelity {allowed 11, implicitDeny 5, explicitDeny 5}, corpus {allowed 96, implicitDeny 174}, boundary {allowed 1, implicitDeny 2, explicitDeny 1}. Probe-prefix counts: corpus 270 (all 25 scenarios, s01 10 ... s25 17), fidelity 21, boundary 4. Sources: scripts/benign_traces.py 270, scripts/fidelity_harness.py 21, engine/synthesizer.py 4."
+    },
+    "p9_divergence_surfaces": {
+      "artifact": "artifacts/p9/live-simulator-parity.json divergence_surfaces[]",
+      "found": "four entries, each diverges true, emulator_decision allowed, expected_decision denied: secure-transport/plaintext-denied (explicitDeny on aws:SecureTransport=false), secure-transport/deny-overrides-narrow-allow (explicitDeny), unsigned/explicit-deny-all (HTTP 403), unsigned/no-policy (HTTP 403, with a public-read bucket returning 200 as control). `diverges` is computed as emulator != expected at scripts/p9_live_simulator_audit.py:491, so it does not itself re-test AWS; the live_aws column carries the live reading."
+    },
+    "p9_wire": {
+      "artifact": "artifacts/p9/live-wire-results.json",
+      "found": "wire_exploits_pre_patch 3, wire_exploits_post_patch 0, benign_preserved true, errors []; three scenarios s01/s07/s15 with pre canary 200 and post canary 403, post blocked_at 'escalate'; attribution {identity_decision allowed, principal_decision implicitDeny, allowed_by_boundary false, boundary_is_load_bearing true} in all three; boundary_enforced_seconds 6.1/7.6/5.8; boundary_refusal attempts 1 (403); post-patch escalate attempts 6; 'attempts': 1 occurs 22 times and 'attempts': 6 occurs 3 times; CANARY-01/:75, CANARY-07/:202, CANARY-15/:310"
+    },
+    "p9_teardown": {
+      "artifact": "artifacts/p9/live-teardown-audit.log",
+      "found": "top level (latest sweep, 18:48:32Z): resources_found_total 0, deletions [], resources_after all empty, leaked_resources 0, teardown_clean true, inventory_matches_sweep false, inventory_from_wire_results 16 entries. sweeps[] 7 entries: 18:31:06 0/0, 18:31:09 0/0, 18:35:21 16/28, 18:39:32 5/9, 18:44:12 16/28, 18:48:28 16/28, 18:48:32 0/0 (found/deletion-ops). Sum found 53, sum deletion ops 93. The 16 created set is identical to artifacts/p9/live-wire-results.json resources_created (16) and its teardown.resources_found_total is 16."
+    },
+    "p9_boundary_provenance": {
+      "artifact": "scripts/p9_live_wire_exploit.py",
+      "found": ":443 `def _attach_boundary(`, :456 `from engine.synthesizer import boundary_document`, :458 `document = boundary_document(list(allow))`, :460-464 create_policy with that document, :465-467 put_user_permissions_boundary, :468 `_await_boundary(...)`, :469 `_await_control_effective(...)`, :471 `resources.boundary_enforced_seconds = round(enforced, 1)`. engine/synthesizer.py:846 `def boundary_document(`."
+    },
+    "p9_probe_span": {
+      "artifact": "scripts/p9_live_wire_exploit.py",
+      "found": ":968 `def probe_01(`, :993 `def probe_07(`, :1009 `def probe_15(`, and probe_15's body ends at :1025 `return Outcome(\"control_probe\", \"iam:AddUserToGroup\", 200, True, \"membership removed again\")`. WHITEPAPER.md:302 cites :968-1025 correctly; docs/whitepaper_sections/04...md:44 cites :968-1020, five lines short."
+    },
+    "p9_window_docstring": {
+      "artifact": "scripts/p9_live_wire_exploit.py:1056-1071",
+      "found": "`def _await_control_effective(` at :1056; docstring :1059-1071, including ':1063 measured 4.6-10s on this account, and it varied between runs' and ':1067-1070 A proxy action proved insufficient: `iam:ListUsers` reported the boundary settled while `iam:UpdateAssumeRolePolicy` still succeeded'. probe_01's docstring at :969-976 repeats the proxy failure. This is the only source for the ListUsers cache-skew claim; no artifact records it."
+    },
+    "p9_budget_absent": {
+      "artifact": "scripts/p9_live_simulator_audit.py, scripts/p9_live_wire_exploit.py, scripts/p9_live_teardown.py, Makefile",
+      "found": "no budget/spend-cap/ceiling/cost-API mechanism; grep for budget|spend|cap|limit across the three scripts yields no hits; the only cost field is the literal \"cost_usd\": 0.0 at scripts/p9_live_simulator_audit.py:655. PREFIX = 'cb-live-' at scripts/p9_live_wire_exploit.py:54; teardown runs from run()'s finally block at :1237-1243 and from teardown() itself."
+    },
+    "p9_timing_grep": {
+      "artifact": "repo-wide grep",
+      "found": "no artifact contains 8.9 or 6.0; artifacts/p9/live-wire-results.json holds 6.1/7.6/5.8 only; '8.9' appears only in prose at WHITEPAPER.md:15, :263, :300, README.md:446, :464, docs/whitepaper_sections/04...md:1, :38"
+    },
+    "governance_docs_unamended": {
+      "artifact": "ZERO_COST_GUARDRAILS.md, HANDOFF_CONTRACTS.md, ORCHESTRATOR.md, JOB.md",
+      "found": "grep for 'p9' / 'Phase 9' / 'live-verify' returns no hits in any of the four; ZERO_COST_GUARDRAILS.md:22 still limits live credentials to iam:SimulateCustomPolicy and :24-34 still forbids stateful live deployment, while README.md:74 still advertises that file as the '$0.00 provider lock'"
+    },
+    "section_structure": {
+      "artifact": "WHITEPAPER.md versus git show HEAD:WHITEPAPER.md",
+      "found": "8 '## Section' headings in the worktree (19, 65, 87, 143, 187, 227, 263, 328) versus 7 at HEAD; Sections 1-6 byte-identical; the old Section 7 split into the new Section 7 (live AWS) and Section 8"
+    }
+  },
+  "citations_checked": [
+    {
+      "citation": "scenarios/scenario_01/main.tf:278-281",
+      "verdict": "correct",
+      "found": "Sid RewritePolicy / Effect Allow / Action iam:CreatePolicyVersion / Resource arn:aws:iam::000000000000:policy/scenario_01_DataAccessCandidate"
+    },
+    {
+      "citation": "README.md:232 (cited from WHITEPAPER.md:122)",
+      "verdict": "wrong",
+      "found": "README.md:232 is blank; :233 is '* 25 of 25 scenarios patched, `post_patch_exploit_success_count: 0`;'. The inventory sentence begins at README.md:242 (continues :243). At HEAD it was at :232, so the anchor is stale only in the worktree that ships with the paper. See finding F3."
+    },
+    {
+      "citation": "engine/synthesizer.py:1246-1259",
+      "verdict": "correct",
+      "found": "_matrix_actions unioning 7 cross-cutting actions incl. s3:GetObject, iam:PassRole, sts:AssumeRole; :1246 def, :1259 return sorted(actions)"
+    },
+    {
+      "citation": "engine/synthesizer.py:1262-1282",
+      "verdict": "correct",
+      "found": "_matrix_resources: one object per bucket, every principal, KMS key"
+    },
+    {
+      "citation": "engine/synthesizer.py:152-197",
+      "verdict": "correct",
+      "found": "BOUNDARY_INAPPLICABLE with 12 mechanism reasons; :152 opens the dict, :197 closes it"
+    },
+    {
+      "citation": "engine/synthesizer.py:910-928",
+      "verdict": "correct",
+      "found": "_guarded_holder docstring on the <kind>:<name> vs <kind>:<owner>/<policy-name> key mismatch"
+    },
+    {
+      "citation": "engine/synthesizer.py:931-969",
+      "verdict": "correct",
+      "found": "_boundary_targets, pre-patch path passed in; :969 return targets"
+    },
+    {
+      "citation": "engine/iam_enforcer.py:116",
+      "verdict": "correct",
+      "found": "class PolicySet, \"The five policy layers AWS evaluates for one request\""
+    },
+    {
+      "citation": "engine/iam_enforcer.py:446-463",
+      "verdict": "correct",
+      "found": "parse_resource_policy requiring a Principal on every statement; :463 return policy"
+    },
+    {
+      "citation": "engine/iam_enforcer.py:520",
+      "verdict": "correct",
+      "found": "step 1 explicit deny, checked before any allow"
+    },
+    {
+      "citation": "engine/iam_enforcer.py:539",
+      "verdict": "correct",
+      "found": "SCP must allow: return Decision(IMPLICIT_DENY, 'not allowed by service control policy', ())"
+    },
+    {
+      "citation": "engine/iam_enforcer.py:543",
+      "verdict": "correct",
+      "found": "boundary allow-intersection"
+    },
+    {
+      "citation": "engine/iam_enforcer.py:551",
+      "verdict": "correct",
+      "found": "session policy must allow"
+    },
+    {
+      "citation": "engine/iam_enforcer.py:556",
+      "verdict": "wrong",
+      "found": ":556 is a BLANK line (identical at HEAD and in the worktree). The step-5 comment '# 5. Same-account access needs an allow from identity or resource policy.' is at :557 and the code `identity_allows = _allow_hits(policies.identity, request, check_principal=False)` is at :558. See finding F4."
+    },
+    {
+      "citation": "engine/iam_enforcer.py:552-558",
+      "verdict": "correct",
+      "found": "the block that proves :556 is blank: :552 session allow test, :553-555 implicit deny, :556 blank, :557 step-5 comment, :558 identity allow lookup"
+    },
+    {
+      "citation": "engine/exploit_graph.py:494-687",
+      "verdict": "correct",
+      "found": "evaluator-gated edge construction: :494 opens the principal loop, :497 `decision = _decision(state, principal, \"iam:CreatePolicyVersion\", policy_arn)`, :498 `if decision.allowed:`, :499 appends the Edge; :687 is the final append before `:689 return graph`"
+    },
+    {
+      "citation": "engine/emulator.py:1-7",
+      "verdict": "correct",
+      "found": "header: no authorization, LocalStack ENFORCE_IAM paid, image exits 55"
+    },
+    {
+      "citation": "engine/emulator.py:83-95",
+      "verdict": "correct",
+      "found": "anonymous_client: unsigned S3 caller is privileged, not identity-less"
+    },
+    {
+      "citation": "engine/emulator.py:144-200",
+      "verdict": "correct",
+      "found": "ScenarioState.from_emulator classmethod, :145 @classmethod, :200 return cls(...)"
+    },
+    {
+      "citation": "engine/emulator.py:147-155",
+      "verdict": "correct",
+      "found": "from_emulator docstring and namespaced ingest"
+    },
+    {
+      "citation": "engine/emulator.py:345-370",
+      "verdict": "correct",
+      "found": "def decide(..., bucket=None); :358 resource_policy = state.bucket_policies.get(bucket) if bucket else None; :370 return iam_enforcer.evaluate(...)"
+    },
+    {
+      "citation": "engine/emulator.py:427-451",
+      "verdict": "correct",
+      "found": "def reset_scenario_namespace(prefix) delete-by-prefix; :451 trailing comment"
+    },
+    {
+      "citation": "scripts/p4_verify_gate.py:47-52",
+      "verdict": "correct",
+      "found": "def check(self, name, condition, detail) emitting the ASSERT line"
+    },
+    {
+      "citation": "scripts/p4_verify_gate.py:393",
+      "verdict": "correct",
+      "found": "benign_corpus_does_not_exercise_data_buckets assertion"
+    },
+    {
+      "citation": "scripts/p4_verify_gate.py:249",
+      "verdict": "correct",
+      "found": "allow_set_shrank_by_exactly_the_expected_flips assertion"
+    },
+    {
+      "citation": "scripts/p4_verify_gate.py:258",
+      "verdict": "correct",
+      "found": "legitimate_probes_kept assertion"
+    },
+    {
+      "citation": "scripts/p4_verify_gate.py:420-433",
+      "verdict": "correct",
+      "found": "boundary attached-count assertion over per_scenario records"
+    },
+    {
+      "citation": "scripts/p1_verify_gate.py:196-226",
+      "verdict": "correct",
+      "found": "inspect_container Config.Env read of FLOCI_SERVICES_IAM_ENFORCEMENT_ENABLED at :215-225"
+    },
+    {
+      "citation": "scripts/p6_redteam.py:232-256",
+      "verdict": "correct",
+      "found": "Deployment.decide deriving bucket from arn:aws:s3:::"
+    },
+    {
+      "citation": "scripts/p6_redteam.py:613",
+      "verdict": "correct",
+      "found": "held_down = sorted(without_boundary - with_boundary)"
+    },
+    {
+      "citation": "scripts/p6_redteam.py:887-933",
+      "verdict": "correct",
+      "found": "four-way flip/blocked/unreachable/no_control taxonomy with transport_deny_fired disambiguation"
+    },
+    {
+      "citation": "scripts/p6_redteam.py:1015-1023",
+      "verdict": "correct",
+      "found": "\"an attack that never ran is not evidence that it was resisted\" and Attempt(..., \"error\", ...)"
+    },
+    {
+      "citation": "scripts/p6_redteam.py:1325-1327",
+      "verdict": "correct",
+      "found": ":1325 `if errors:`, :1326 the stderr warning, :1327 `return 2`, :1328 `return 0`"
+    },
+    {
+      "citation": "artifacts/p6/redteam-bypass-log.md:182-192",
+      "verdict": "correct",
+      "found": "three numbered corrections plus the line-192 paragraph beginning 'A fourth defect' = four corrections"
+    },
+    {
+      "citation": "artifacts/p6/redteam-bypass-log.md:29",
+      "verdict": "correct",
+      "found": "the only occurrence of 'runtime capabilities the boundary narrowed away (probe-visible): 0' in the whole log"
+    },
+    {
+      "citation": "scripts/p9_live_wire_exploit.py:968-1025 (WHITEPAPER.md:302)",
+      "verdict": "correct",
+      "found": ":968 def probe_01, :993 def probe_07, :1009 def probe_15, body ends :1025 return Outcome(\"control_probe\", \"iam:AddUserToGroup\", 200, True, \"membership removed again\")"
+    },
+    {
+      "citation": "scripts/p9_live_wire_exploit.py:968-1020 (docs/whitepaper_sections/04_live_aws_ground_truth_and_propagation_skew.md:44)",
+      "verdict": "wrong",
+      "found": "the span starts correctly at probe_01 (:968) but stops five lines short of the end of probe_15's body, which is at :1025. See finding F5."
+    },
+    {
+      "citation": "docs/whitepaper_sections/04_live_aws_ground_truth_and_propagation_skew.md:34 -> scripts/p9_live_wire_exploit.py:456",
+      "verdict": "correct",
+      "found": ":456 `from engine.synthesizer import boundary_document`; the doc's claim that the boundary is imported rather than hand-written is exactly right"
+    },
+    {
+      "citation": "scripts/p9_live_wire_exploit.py:443-473",
+      "verdict": "correct",
+      "found": "def _attach_boundary(:443) through :473 return created[\"Arn\"]; :456 import, :458 boundary_document(list(allow)), :460-464 create_policy, :465-467 put_user_permissions_boundary, :468 _await_boundary, :469 _await_control_effective, :471 round(enforced, 1)"
+    },
+    {
+      "citation": "scripts/p9_live_wire_exploit.py:1056-1071",
+      "verdict": "correct",
+      "found": "def _await_control_effective(:1056); docstring :1059-1071 states the boundary 'keeps honouring the unbounded identity for several seconds (measured 4.6-10s on this account, and it varied between runs)' and that `iam:ListUsers` reported settled while `iam:UpdateAssumeRolePolicy` still succeeded - the only source for the cache-skew claim"
+    },
+    {
+      "citation": "scripts/p9_live_wire_exploit.py:1086-1103",
+      "verdict": "correct",
+      "found": "def _await_boundary(:1086) polls GetUser for the ARN then sleeps _SETTLE_INTERVAL (:1103) - which is why the ~10s window is not explained by attachment visibility alone"
+    },
+    {
+      "citation": "scripts/p9_live_wire_exploit.py:1237-1243",
+      "verdict": "correct",
+      "found": "finally: `from scripts import p9_live_teardown` then `teardown = p9_live_teardown.teardown()` - the teardown is mandatory on every path"
+    },
+    {
+      "citation": "scripts/p9_live_wire_exploit.py:515, :697, :834",
+      "verdict": "correct",
+      "found": "the three CANARY-01 / CANARY-07 / CANARY-15 object bodies that WHITEPAPER.md:288 refers to as a `CANARY-*` bucket; the values appear in artifacts/p9/live-wire-results.json at :75, :202, :310"
+    },
+    {
+      "citation": "scripts/p9_live_teardown.py:214-327",
+      "verdict": "correct",
+      "found": "def teardown(:214): discover, delete each kind, discover again at :293, leaked at :294, report dict :305-325, _persist(report) at :326"
+    },
+    {
+      "citation": "scripts/p9_live_teardown.py:305-325",
+      "verdict": "correct",
+      "found": "\"resources_found_total\": created_total (:315), \"discovery\": \"live account sweep by name prefix (not a bookkeeping file)\" (:313), \"inventory_matches_sweep\" (:322-323), \"teardown_clean\": not leaked and not errors (:324)"
+    },
+    {
+      "citation": "scripts/p9_live_teardown.py:330-368",
+      "verdict": "correct",
+      "found": "def _persist(:330): docstring at :331-338 explains it is called from teardown() rather than run() and that sweeps accumulate because 'a sweep that deletes sixteen resources is stronger evidence than a later sweep that finds nothing left to delete. Top-level fields always describe the most recent sweep'; payload[\"sweeps\"] appended at :357-367; AUDIT.write_text at :368"
+    },
+    {
+      "citation": "scripts/p9_live_simulator_audit.py:504-557",
+      "verdict": "correct",
+      "found": "run_negative_controls: :513-526 the perturbation loop, :528-531 decision tallies, :533-546 controls dict incl. decision_distribution, :547-556 all_controls_passed"
+    },
+    {
+      "citation": "scripts/p9_live_simulator_audit.py:583-590",
+      "verdict": "correct",
+      "found": "by_group built from probe.name.split(\"/\", 1)[0] with probes/agree/disagree/errors counters - the source of fidelity 21 / corpus 270 / boundary 4"
+    },
+    {
+      "citation": "scripts/p9_live_simulator_audit.py:655",
+      "verdict": "correct",
+      "found": "\"cost_usd\": 0.0 is a literal constant, not a measured value; no cost API is called anywhere in the script. README.md:444's 'cost $0.00' is a faithful read of this field, and iam:SimulateCustomPolicy is free, so the value is true even though it is not measured"
+    },
+    {
+      "citation": "scripts/p9_live_simulator_audit.py:479-496",
+      "verdict": "correct",
+      "found": "divergence surfaces assembled from _DIVERGENCE_CASES plus artifacts/p1/fidelity.json; `diverges` is `emulator != expected` (:491), so this field does not itself test live AWS"
+    },
+    {
+      "citation": "Makefile:154-165",
+      "verdict": "correct",
+      "found": "live-verify target: three scripts run with AWS_PROFILE=$(LIVE_PROFILE) AWS_REGION=$(LIVE_REGION) plus jq -e gate assertions. The `verify:` target is `verify-p1 verify-p2 verify-p3 verify-p4` and does NOT include live-verify, matching README.md:496-499"
+    },
+    {
+      "citation": "engine/synthesizer.py:846",
+      "verdict": "correct",
+      "found": "def boundary_document(allow: Sequence[tuple[str, str]], *, ...) - the shipped synthesizer entry point the wire harness imports"
+    },
+    {
+      "citation": "artifacts/p9/live-simulator-parity.json (top level)",
+      "verdict": "correct",
+      "found": "phase 9, track 1, probes_total 295, probes_agreeing 295, discrepancies_with_engine 0, probe_errors 0, parity_rate 1, by_group {fidelity 21/21, corpus 270/270, boundary 4/4}, divergences_confirmed 4 (integer), negative_controls {...}, cost_usd 0, resources_created 0"
+    },
+    {
+      "citation": "artifacts/p9/live-wire-results.json (scenarios[].resources.boundary_enforced_seconds)",
+      "verdict": "correct",
+      "found": "s01 6.1, s07 7.6, s15 5.8 - exactly the three values in the WHITEPAPER.md:290-294 table; no 8.9 or 6.0 anywhere in the artifact"
+    },
+    {
+      "citation": "artifacts/p9/live-wire-results.json (teardown + resources_created)",
+      "verdict": "correct",
+      "found": "resources_created 16 entries, set-identical to the teardown log's inventory_from_wire_results; teardown {leaked_resources 0, teardown_clean true, resources_found_total 16}; errors []"
+    },
+    {
+      "citation": "artifacts/p9/live-teardown-audit.log (via WHITEPAPER.md:306 and README.md:448)",
+      "verdict": "wrong",
+      "found": "top level is the latest sweep: resources_found_total 0, deletions [], inventory_matches_sweep false. The 16 is in sweeps[] at 18:48:28 (found 16, deletions 28, leaked 0, clean true). The cited lines attribute 16/16 to the file without signposting that its top level reads zero. See finding C1."
+    },
+    {
+      "citation": "README.md:442-448 (Phase 9 track table)",
+      "verdict": "correct",
+      "found": "five rows; parity row 295/295 with parity_rate 1.0000, 0 discrepancies, cost $0.00, 4/4 divergences; negative-control row 108/187 (181 implicit); wire row 3 -> 0 with the attribution triple and boundary_is_load_bearing true, benign 200 before and after, 5.8-8.9s; cache-skew row ListUsers; teardown row 16/16/0. Every value matches the artifacts except the 8.9s upper bound and the budget (findings A1, A2) and the unattributed top level (C1)"
+    }
+  ],
+  "attested": [
+    {
+      "claim": "9+ hours of continuous autonomous runtime across Phases 1-7",
+      "status": "operator-attested",
+      "note": "harness-level runtime fact; not present in any artifact and not required to be"
+    },
+    {
+      "claim": "2 hours spent by the Lead Orchestrator independently auditing/re-verifying the Phase 6 gate",
+      "status": "operator-attested",
+      "note": "human-in-the-loop effort fact; not in artifacts"
+    },
+    {
+      "claim": "96% context cache hit rate",
+      "status": "operator-attested",
+      "note": "harness/billing telemetry, outside the repo"
+    },
+    {
+      "claim": "DeepSeek 1017 model under a DSML tool-call harness",
+      "status": "operator-attested",
+      "note": "model and harness identity; not recorded in artifacts"
+    },
+    {
+      "claim": "approximately ~$2.60 USD total multi-phase API cost",
+      "status": "operator-attested",
+      "note": "billing fact"
+    },
+    {
+      "claim": "\"My guess is you and I are both deploying... I need you to confirm rather than me assuming it\"",
+      "status": "operator-attested verbatim transcript quote",
+      "note": "inter-agent dialogue, not in artifacts"
+    },
+    {
+      "claim": "\"my run modified artifacts/p2... I have reminded the parent agent to restore them\"",
+      "status": "operator-attested verbatim transcript quote",
+      "note": "inter-agent dialogue, not in artifacts"
+    },
+    {
+      "claim": "\"My broad except made it look like not_applicable. That is the worst failure mode here.\"",
+      "status": "operator-attested verbatim transcript quote",
+      "note": "the broad-except realization; the behaviour it describes is independently corroborated by artifacts/p6/redteam-bypass-log.md:192 and scripts/p6_redteam.py:1015-1026"
+    },
+    {
+      "claim": "Section 6 narrative facts on subagent lifecycle management, /tmp/baseline-*.log and /tmp/scope-*.scope pins, and the Phase 5b re-run after the Phase 4 corpus changed",
+      "status": "operator-attested narrative",
+      "note": "corroborated in kind: /tmp/baseline-<task-id>.log and /tmp/scope-<task-id>.scope are the AGENTS.md section 1 baseline and dispatch-scope pin mechanisms, and commit 781520b is titled 'Phase 5b post-patch rescan'"
+    },
+    {
+      "claim": "Model provenance: the paper's results were produced by a standard, unmodified off-the-shelf model (DeepSeek 1017 via TokenHarbor), with no fine-tuned weights and no specialized agentic models",
+      "status": "operator-attested model-provenance claim",
+      "note": "Model identity and provenance are harness/billing facts and are not recorded in any artifact. Attested rather than artifact-backed because nothing in the repository can evidence them: there is no training configuration, no adapter or LoRA weights, no fine-tune dataset and no model manifest in the tree. What the repository does corroborate is the mechanism the sentence names - the reliability is attributed to the text-based orchestration harness (AGENTS.md/JOB.md rules, the exit-code and baseline protocol, scripts/p6_redteam.py's fail-loud exit, the p9 gate assertions), all of which are ordinary prompting and process, not weight modification. WHITEPAPER.md:17 states the sentence character-for-character and nothing in the tree contradicts it."
+    },
+    {
+      "claim": "\"I captured the jq exit through head, which launders the code. Fixing both - a void baseline excuses nothing.\"",
+      "status": "operator-attested verbatim transcript quote",
+      "note": "The quoted incident is inter-agent dialogue and appears in no artifact. Attested rather than artifact-backed because the artifact set records only outcomes, never the operator's intermediate admissions. The rule it is about is written down and checkable: AGENTS.md section 1 lists `| head` and `| tail` among the forbidden exit-code-laundering forms on any configured check and requires a read-only baseline that is void if it lacks timestamp, workspace hash or the write bit - which is exactly what 'a void baseline excuses nothing' refers to."
+    },
+    {
+      "claim": "\"There is an honesty issue here... the 403 on the direct canary read in 07/15 post-patch is unrelated to the boundary. I must record the actually denied step.\"",
+      "status": "operator-attested verbatim transcript quote",
+      "note": "Attested rather than artifact-backed because it is the operator's own diagnosis, spoken before the fix. Corroborated in kind by the artifact the fix produced: artifacts/p9/live-wire-results.json carries `post_patch.blocked_at: \"escalate\"` and `canary_http_status: 403` for all three scenarios, i.e. the harness does now separate the denied escalation step from the canary read, and `remediation.attribution.allowed_by_boundary` is false with `boundary_is_load_bearing` true, which is the distinction the quote demands. No artifact records the earlier mis-scored run it describes."
+    },
+    {
+      "claim": "\"Permissions boundary takes about 10 seconds to take effect... This is a measurement timing error, not a control failure.\"",
+      "status": "operator-attested verbatim transcript quote",
+      "note": "Attested rather than artifact-backed because the quoted phrasing is dialogue. Corroborated in kind twice: scripts/p9_live_wire_exploit.py:1059-1071 is the docstring the incident produced ('the authorization path keeps honouring the unbounded identity for several seconds (measured 4.6-10s on this account, and it varied between runs)'), and the committed artifact measures 6.1s / 7.6s / 5.8s in artifacts/p9/live-wire-results.json. The magnitude in the quote is consistent with those measurements; the exact 'about 10 seconds' is the operator's rounding, not an artifact value."
+    },
+    {
+      "claim": "\"The strongest piece of evidence... would be covered by that empty sweep. Now persist the write down to teardown() itself.\"",
+      "status": "operator-attested verbatim transcript quote",
+      "note": "Attested rather than artifact-backed because it is the operator's reasoning before the change. Corroborated in kind by the code and the artifact it produced: scripts/p9_live_teardown.py:326 calls `_persist(report)` from inside `teardown()` (not from `run()`), and `_persist`'s docstring at :331-338 states exactly this rationale ('Called from teardown() rather than run() ... Sweeps accumulate because the informative one is not always the last ... Top-level fields always describe the most recent sweep'). artifacts/p9/live-teardown-audit.log now keeps all seven sweeps, including the 18:35:21 and 18:48:28 sweeps that found 16. WHITEPAPER.md:326 narrates the same fix."
+    },
+    {
+      "claim": "Phase 9 live AWS spend of 'a few cents' (README.md:15, :47, :497)",
+      "status": "operator-attested billing fact",
+      "note": "Attested rather than artifact-backed because no billing or cost artifact exists: scripts/p9_live_simulator_audit.py:655 writes a literal \"cost_usd\": 0.0 for track 1 only, and tracks 2 and 3 record no cost field at all. Nothing in artifacts/p9/ measures spend. The claim is plausible for 295 SimulateCustomPolicy calls plus a 16-resource stateful run torn down within a minute, but it is not verifiable from the repository, and it is the number a reader is most likely to try to check."
+    }
+  ],
+  "method_notes": [
+    "No build, container, scanner or mutating command was run. All verification used jq/grep/wc/awk/sed, read-only python over committed JSON/CSV/Markdown, and read-only git log/show/diff. No AWS call, no make target, no git write.",
+    "WHITEPAPER.md is untracked at base commit 00ce3ed44b711ed685deca66e60b33471218baaf and carries uncommitted Phase 9 edits (git status: ' M README.md', ' M WHITEPAPER.md', '?? docs/whitepaper_sections/04_live_aws_ground_truth_and_propagation_skew.md'). Word count 5999 over 354 lines, measured in the worktree that ships.",
+    "claims_checked 210 = 119 prior Phase 1-8 checks (all re-run, no regression) + 91 new Phase 9 assertions. The 91 are: 4 abstract numbers; 12 simulator-parity numbers; 6 divergence-surface items; 14 wire-exploit items; 7 propagation-window items; 10 teardown and Phase 4 tightness items; 5 correction items; 7 Section 8 items; 4 structural items; 22 README Phase 9 items.",
+    "All Phase 9 counts were recomputed from the artifacts rather than read from the prose: Counter() over artifacts/p9/live-simulator-parity.json results[] for the decision distribution and the per-group split; len() over resources_created and over inventory_from_wire_results for the 16/16; sum() over the teardown sweeps for the 53 found / 93 deletion operations; grep -c for the attempts counts (6 x 3, 1 x 22).",
+    "The four required verbatim quotes and the mandated abstract sentence were checked with exact-substring and exact-string comparison in Python, not by eye, and each occurs exactly once. The three Phase 8 blockquotes were compared between `git show HEAD:WHITEPAPER.md` and the worktree.",
+    "Section 1-6 bodies were diffed line-by-line against `git show HEAD:WHITEPAPER.md` and are identical; only the abstract (:11-17), the new Section 7 (:263-326), the renumbered Section 8 (:328-354) and one added clause at :334 changed. The 20 inherited anchors were re-dumped by line number and none moved for Sections 1-6.",
+    "Out-of-scope reads (performed to route, not to fix): ZERO_COST_GUARDRAILS.md, HANDOFF_CONTRACTS.md, ORCHESTRATOR.md, JOB.md, Makefile. Only artifacts/p8/whitepaper-audit.json was written.",
+    "citations_spot_checked 57 = the 34 prior citations plus 23 Phase 9 citations. citations_wrong 4 and citation_defects 3: three line-number defects plus one misattributed artifact citation (the teardown log), each counted once in each relevant field and explained in audit_passed_reason rather than hidden."
+  ],
+  "citations_wrong": 0,
+  "resolution_round": {
+    "round": 2,
+    "fixed_ids": [
+      "F3",
+      "F4",
+      "F5",
+      "A1",
+      "A2",
+      "A3",
+      "C1",
+      "N5",
+      "N4"
+    ],
+    "not_fixed": [],
+    "open_notes": [],
+    "word_cap": {
+      "was": 6000,
+      "now": 6500,
+      "raised_by": "human, mid-task",
+      "actual": 6121
+    },
+    "verification_method": "Each fix re-read from the file at the claimed line and cross-checked against the artifact or source it cites; A1 re-verified by confirming no artifact contains '8.9'; A2 by grepping 'budget' in scripts/p9_live_*.py (no hits) and reading :1237/:1243; A3 by grepping 'post_patch: 1' (0 hits) and reading :1059-1071; C1 by reading the teardown log's top level (found 0, deletions []) versus its sweeps array. Sections 1-6 diffed line-by-line against `git show HEAD:WHITEPAPER.md`: exactly 2 differing lines, both the single-character citation repairs F4 (:556->:557) and F3 (README.md:232->:242), which live inside that slice by necessity.",
+    "sections_1_6_identity": "byte-identical except the 2 authorised citation repairs",
+    "round_2_scope": "ZERO_COST_GUARDRAILS.md, HANDOFF_CONTRACTS.md, README.md — governance closure for N4; no change to the audited WHITEPAPER.md claim surface"
+  },
+  "open_notes_after_n4": [
+    "none — N4 resolved; N5 was already resolved in the Phase 9B fix round"
+  ]
+}

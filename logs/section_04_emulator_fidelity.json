@@ -1,0 +1,606 @@
+{
+  "generated_at_utc": "2026-11-05T09:18:43Z",
+  "endpoint": "http://localhost:4566",
+  "emulator_image": "floci/floci:latest",
+  "emulator_enforcement_flag": "FLOCI_SERVICES_IAM_ENFORCEMENT_ENABLED=true",
+  "ground_truth": "documented AWS IAM policy-evaluation semantics",
+  "total_cases": 24,
+  "kill_criterion_threshold": 0.2,
+  "emulator_enforcement_divergence": 0.1667,
+  "emulator_enforcement_wrong_count": 4,
+  "emulator_simulate_divergence": 0.0,
+  "emulator_simulate_wrong_count": 0,
+  "local_evaluator_divergence": 0.0,
+  "local_evaluator_wrong_count": 0,
+  "kill_criterion_triggered": false,
+  "selected_backend": "iam_enforcer",
+  "backend_rationale": "The emulator's enforcement path returns 4/24 decisions that contradict documented AWS semantics, above the 20% kill-criterion threshold, so the emulator cannot be the authority on whether a hop is permitted. engine/iam_enforcer.py is wrong on 0/24 cases and is therefore the authoritative decision engine; the emulator remains authoritative for control-plane state (users, roles, policies, bucket policies, object bytes).",
+  "divergence_surfaces": [
+    {
+      "surface": "identity policy evaluation",
+      "detail": "the emulator reaches the right principal and evaluates the wrong conditions, notably aws:SecureTransport",
+      "cases": 21,
+      "emulator_enforce_wrong": 2,
+      "local_evaluator_wrong": 0
+    },
+    {
+      "surface": "unsigned-request enforcement",
+      "detail": "the emulator does not evaluate the principal at all: it admits every unsigned S3 request, so an explicit Deny naming every principal still returns the object",
+      "cases": 3,
+      "emulator_enforce_wrong": 2,
+      "local_evaluator_wrong": 0
+    }
+  ],
+  "by_group": {
+    "wildcard": {
+      "total": 2,
+      "emulator_enforce_wrong": 0,
+      "emulator_simulate_wrong": 0,
+      "local_evaluator_wrong": 0
+    },
+    "implicit-deny": {
+      "total": 2,
+      "emulator_enforce_wrong": 0,
+      "emulator_simulate_wrong": 0,
+      "local_evaluator_wrong": 0
+    },
+    "explicit-deny": {
+      "total": 2,
+      "emulator_enforce_wrong": 0,
+      "emulator_simulate_wrong": 0,
+      "local_evaluator_wrong": 0
+    },
+    "notaction": {
+      "total": 2,
+      "emulator_enforce_wrong": 0,
+      "emulator_simulate_wrong": 0,
+      "local_evaluator_wrong": 0
+    },
+    "resource-scoping": {
+      "total": 2,
+      "emulator_enforce_wrong": 0,
+      "emulator_simulate_wrong": 0,
+      "local_evaluator_wrong": 0
+    },
+    "condition": {
+      "total": 8,
+      "emulator_enforce_wrong": 2,
+      "emulator_simulate_wrong": 0,
+      "local_evaluator_wrong": 0
+    },
+    "aws:SecureTransport": {
+      "total": 3,
+      "emulator_enforce_wrong": 2,
+      "emulator_simulate_wrong": 0,
+      "local_evaluator_wrong": 0
+    },
+    "iam:PassedToService": {
+      "total": 2,
+      "emulator_enforce_wrong": 0,
+      "emulator_simulate_wrong": 0,
+      "local_evaluator_wrong": 0
+    },
+    "boundary": {
+      "total": 3,
+      "emulator_enforce_wrong": 0,
+      "emulator_simulate_wrong": 0,
+      "local_evaluator_wrong": 0
+    }
+  },
+  "cases": [
+    {
+      "name": "allow-wildcard/iam",
+      "groups": [
+        "wildcard"
+      ],
+      "action": "iam:CreateUser",
+      "resource": "*",
+      "expected": "allowed",
+      "expected_basis": "Action '*' matches every action",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "create_user succeeded",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "action-name-case-folding",
+      "groups": [
+        "wildcard"
+      ],
+      "action": "iam:CreateUser",
+      "resource": "*",
+      "expected": "allowed",
+      "expected_basis": "action names are matched case-insensitively",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "create_user succeeded",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "implicit-deny/iam",
+      "groups": [
+        "implicit-deny"
+      ],
+      "action": "iam:CreateUser",
+      "resource": "*",
+      "expected": "denied",
+      "expected_basis": "no statement allows the action",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "denied",
+      "emulator_enforce_detail": "AccessDenied",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "implicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ImplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "implicit-deny/s3-put",
+      "groups": [
+        "implicit-deny"
+      ],
+      "action": "s3:PutObject",
+      "resource": "*",
+      "expected": "denied",
+      "expected_basis": "no statement allows the action",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "denied",
+      "emulator_enforce_detail": "AccessDenied",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "implicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ImplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "explicit-deny-beats-allow",
+      "groups": [
+        "explicit-deny"
+      ],
+      "action": "iam:CreateUser",
+      "resource": "*",
+      "expected": "denied",
+      "expected_basis": "an explicit Deny always wins over any Allow",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "denied",
+      "emulator_enforce_detail": "AccessDenied",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "explicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ExplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "deny-resource-miss",
+      "groups": [
+        "explicit-deny"
+      ],
+      "action": "iam:CreateUser",
+      "resource": "*",
+      "expected": "allowed",
+      "expected_basis": "the Deny names a different resource, so it does not apply",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "create_user succeeded",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "notaction-deny",
+      "groups": [
+        "notaction"
+      ],
+      "action": "iam:CreateUser",
+      "resource": "*",
+      "expected": "denied",
+      "expected_basis": "NotAction deny applies to every action it does not list",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "denied",
+      "emulator_enforce_detail": "AccessDenied",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "explicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ExplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "notaction-deny-spares",
+      "groups": [
+        "notaction"
+      ],
+      "action": "iam:CreateUser",
+      "resource": "*",
+      "expected": "allowed",
+      "expected_basis": "the action is listed in NotAction, so the Deny does not apply",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "create_user succeeded",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "resource-scoped-hit",
+      "groups": [
+        "resource-scoping"
+      ],
+      "action": "s3:GetObject",
+      "resource": "arn:aws:s3:::fidelity-bucket/secret.txt",
+      "expected": "allowed",
+      "expected_basis": "the object ARN matches the allowed prefix",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "get_object succeeded",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "resource-scoped-miss",
+      "groups": [
+        "resource-scoping"
+      ],
+      "action": "s3:GetObject",
+      "resource": "arn:aws:s3:::fidelity-bucket/secret.txt",
+      "expected": "denied",
+      "expected_basis": "the object ARN is outside the allowed prefix",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "denied",
+      "emulator_enforce_detail": "AccessDenied",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "implicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ImplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "secure-transport/plaintext-denied",
+      "groups": [
+        "condition",
+        "aws:SecureTransport"
+      ],
+      "action": "s3:GetObject",
+      "resource": "arn:aws:s3:::fidelity-bucket/secret.txt",
+      "expected": "denied",
+      "expected_basis": "Bool aws:SecureTransport=false is satisfied by a plaintext request",
+      "secure_transport": false,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "get_object succeeded",
+      "emulator_enforce_correct": false,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "explicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ExplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "secure-transport/tls-allowed",
+      "groups": [
+        "condition",
+        "aws:SecureTransport"
+      ],
+      "action": "s3:GetObject",
+      "resource": "arn:aws:s3:::fidelity-bucket/secret.txt",
+      "expected": "allowed",
+      "expected_basis": "Bool aws:SecureTransport=false is not satisfied by a TLS request",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "get_object succeeded",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "secure-transport/deny-overrides-narrow-allow",
+      "groups": [
+        "condition",
+        "aws:SecureTransport"
+      ],
+      "action": "s3:GetObject",
+      "resource": "arn:aws:s3:::fidelity-bucket/secret.txt",
+      "expected": "denied",
+      "expected_basis": "the conditional Deny applies and outranks the Allow",
+      "secure_transport": false,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "get_object succeeded",
+      "emulator_enforce_correct": false,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "explicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ExplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "passed-to-service/lambda-permitted",
+      "groups": [
+        "condition",
+        "iam:PassedToService"
+      ],
+      "action": "iam:PassRole",
+      "resource": "arn:aws:iam::000000000000:role/fidelity-target-role",
+      "expected": "allowed",
+      "expected_basis": "IAM passes iam:PassedToService=lambda.amazonaws.com to the role",
+      "secure_transport": true,
+      "passed_to_service": "lambda.amazonaws.com",
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "InvalidParameterValueException (reached post-authorization)",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "passed-to-service/other-service-denied",
+      "groups": [
+        "condition",
+        "iam:PassedToService"
+      ],
+      "action": "iam:PassRole",
+      "resource": "arn:aws:iam::000000000000:role/fidelity-target-role",
+      "expected": "denied",
+      "expected_basis": "the policy permits only ec2.amazonaws.com, which this call does not use",
+      "secure_transport": true,
+      "passed_to_service": "lambda.amazonaws.com",
+      "has_boundary": false,
+      "emulator_enforce": "denied",
+      "emulator_enforce_detail": "AccessDeniedException",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "implicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ImplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "string-not-equals",
+      "groups": [
+        "condition"
+      ],
+      "action": "iam:PassRole",
+      "resource": "arn:aws:iam::000000000000:role/fidelity-target-role",
+      "expected": "allowed",
+      "expected_basis": "lambda.amazonaws.com is not equal to ec2.amazonaws.com, so the condition holds",
+      "secure_transport": true,
+      "passed_to_service": "lambda.amazonaws.com",
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "InvalidParameterValueException (reached post-authorization)",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "string-like",
+      "groups": [
+        "condition"
+      ],
+      "action": "s3:GetObject",
+      "resource": "arn:aws:s3:::fidelity-bucket/secret.txt",
+      "expected": "allowed",
+      "expected_basis": "the principal ARN matches the StringLike pattern",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "get_object succeeded",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "null-condition-key-absent",
+      "groups": [
+        "condition"
+      ],
+      "action": "s3:GetObject",
+      "resource": "arn:aws:s3:::fidelity-bucket/secret.txt",
+      "expected": "allowed",
+      "expected_basis": "Null:true is satisfied because the key is not present in the request",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": false,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "get_object succeeded",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "boundary/narrows-below-identity",
+      "groups": [
+        "boundary"
+      ],
+      "action": "iam:CreateUser",
+      "resource": "*",
+      "expected": "denied",
+      "expected_basis": "a permissions boundary never grants; it must itself allow the action",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": true,
+      "emulator_enforce": "denied",
+      "emulator_enforce_detail": "AccessDenied",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "implicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ImplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "boundary/permits-matching-action",
+      "groups": [
+        "boundary"
+      ],
+      "action": "s3:GetObject",
+      "resource": "arn:aws:s3:::fidelity-bucket/secret.txt",
+      "expected": "allowed",
+      "expected_basis": "identity and boundary both allow the action",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": true,
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "get_object succeeded",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "allowed",
+      "emulator_simulate_detail": "allowed",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "boundary/deny-beats-identity-allow",
+      "groups": [
+        "boundary"
+      ],
+      "action": "s3:GetObject",
+      "resource": "arn:aws:s3:::fidelity-bucket/secret.txt",
+      "expected": "denied",
+      "expected_basis": "an explicit Deny inside the boundary applies",
+      "secure_transport": true,
+      "passed_to_service": null,
+      "has_boundary": true,
+      "emulator_enforce": "denied",
+      "emulator_enforce_detail": "AccessDenied",
+      "emulator_enforce_correct": true,
+      "emulator_simulate": "denied",
+      "emulator_simulate_detail": "explicitDeny",
+      "emulator_simulate_correct": true,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ExplicitDeny",
+      "local_evaluator_correct": true
+    }
+  ],
+  "unsigned_request_cases": [
+    {
+      "name": "unsigned/explicit-deny-all",
+      "groups": [
+        "unsigned-request",
+        "explicit-deny"
+      ],
+      "expected": "denied",
+      "expected_basis": "an explicit Deny naming every principal refuses the unsigned request too",
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "unsigned get_object succeeded",
+      "emulator_enforce_correct": false,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ExplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "unsigned/no-policy",
+      "groups": [
+        "unsigned-request",
+        "implicit-deny"
+      ],
+      "expected": "denied",
+      "expected_basis": "a bucket with no policy and no public ACL admits no unsigned reader",
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "unsigned get_object succeeded",
+      "emulator_enforce_correct": false,
+      "local_evaluator": "denied",
+      "local_evaluator_detail": "ImplicitDeny",
+      "local_evaluator_correct": true
+    },
+    {
+      "name": "unsigned/public-read-allowed",
+      "groups": [
+        "unsigned-request",
+        "wildcard"
+      ],
+      "expected": "allowed",
+      "expected_basis": "a `Principal: *` grant does admit an unsigned reader",
+      "emulator_enforce": "allowed",
+      "emulator_enforce_detail": "unsigned get_object succeeded",
+      "emulator_enforce_correct": true,
+      "local_evaluator": "allowed",
+      "local_evaluator_detail": "Allow",
+      "local_evaluator_correct": true
+    }
+  ]
+}

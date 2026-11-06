@@ -1,0 +1,3801 @@
+{
+  "phase": 4,
+  "contract": "minimal remediation with no collateral loss of authorization",
+  "emulator": "http://localhost:4566",
+  "total_scenarios": 25,
+  "scenarios_patched": 25,
+  "pre_patch_exploit_success_count": 22,
+  "post_patch_exploit_success_count": 0,
+  "post_patch_benign_pass_rate": 1.0,
+  "decision_matrix": {
+    "total_entries": 10459,
+    "pre_patch_allow_entries": 763,
+    "post_patch_allow_entries": 720,
+    "flips_to_deny_expected": 43,
+    "flips_to_deny_collateral": 0,
+    "collateral_entries": [],
+    "expected_rule": "an Allow may flip to Deny only when the request is an edge of the pre-patch escalation graph reachable from the entry principal, a role-assumption edge whose trust policy was narrowed, or the plaintext variant of an S3 request",
+    "transports_evaluated": [
+      "aws:SecureTransport=true",
+      "aws:SecureTransport=false"
+    ]
+  },
+  "benign_replay": {
+    "total_calls": 1250,
+    "passed": 1250,
+    "failed": 0,
+    "failures": []
+  },
+  "legitimate_probes": {
+    "total": 97,
+    "kept_allowing": 97
+  },
+  "permissions_boundaries": {
+    "attached_count": 14,
+    "scenarios_with_boundary": [
+      1,
+      2,
+      3,
+      4,
+      7,
+      8,
+      9,
+      12,
+      13,
+      14,
+      15,
+      16,
+      24
+    ],
+    "scenarios_without_boundary": [
+      5,
+      6,
+      10,
+      11,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      25
+    ],
+    "rationale": {
+      "create-policy-version": "the entry principal may mint a new default version of an existing managed policy, which is authority over an identity",
+      "attach-role-policy": "the entry principal may attach a policy to a role, which rewrites that role's identity authority",
+      "put-user-policy": "the entry principal may write an inline policy onto another user, which rewrites that user's identity authority",
+      "put-role-policy": "the entry principal may write an inline policy onto a role, which rewrites that role's identity authority",
+      "update-assume-role-policy": "the entry principal may replace a role's trust policy, which rewrites who that role's identity answers to",
+      "create-access-key": "the entry principal may mint a long-term credential for another identity",
+      "update-login-profile": "the entry principal may set another identity's console password",
+      "add-user-to-group": "the entry principal may add itself to a group whose identity authority it was never granted directly",
+      "attach-user-policy-self": "the entry principal may attach a policy to its own user",
+      "pass-role-run-instances": "the entry principal may hand a privileged role to a service it launches",
+      "pass-role-create-function": "the entry principal may hand a privileged role to a function it creates",
+      "pass-role-passtoservice-wildcard": "the entry principal may hand a privileged role to any service",
+      "assume-passrole-create-function": "the role the entry principal assumes may hand on a privileged role"
+    },
+    "inapplicable": {
+      "s3-missing-secure-transport": "the control is a bucket-policy transport condition, a resource-policy matter",
+      "s3-missing-block-public-access": "the control is a bucket-policy Principal scope, a resource-policy matter",
+      "update-function-code": "the control is on a function's code, not on the caller's identity",
+      "lambda-proxy-bypass": "the control is on a function's runtime body, not on the caller's identity",
+      "send-command-via-instance-role": "the escalation travels a role-assumption edge; its control is the role's trust policy, which a permissions boundary cannot reach",
+      "assume-send-command-plaintext-s3": "the escalation travels a trust relationship; a boundary on the entry user would only repeat the grant revocation the trust narrowing already performs",
+      "assume-send-command-kms-decrypt": "the escalation travels a trust relationship; the control belongs in the role's trust policy",
+      "assume-update-function-config-s3": "the escalation travels a trust relationship; the control belongs in the role's trust policy",
+      "assume-chained-twice": "the escalation travels two trust relationships; the control belongs in the trust policies",
+      "assume-update-function-code-exfiltrate": "the escalation travels a trust relationship; the control belongs in the role's trust policy",
+      "assume-wildcard-trust": "the control is a wildcard Principal in a trust policy, a resource-policy matter",
+      "assume-send-command-plaintext-legacy-bucket": "the control is a bucket-policy transport condition reached through a trust relationship"
+    }
+  },
+  "per_scenario": [
+    {
+      "scenario": 1,
+      "mechanism": "create-policy-version",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "iam:CreatePolicyVersion lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:CreatePolicyVersion; arn:aws:iam::000000000000:user/scenario_01_attacker may assume arn:aws:iam::000000000000:role/scenario_01_reader_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; attached scenario_01_boundary to user scenario_01_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may mint a new default version of an existing managed policy, which is authority over an identity",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_01.json",
+      "matrix_entries": 396,
+      "flips_to_deny_expected": 2,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_01_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 2,
+      "mechanism": "attach-role-policy",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "iam:AttachRolePolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:AttachRolePolicy; arn:aws:iam::000000000000:user/scenario_02_attacker may assume arn:aws:iam::000000000000:role/scenario_02_ops_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; attached scenario_02_boundary to user scenario_02_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may attach a policy to a role, which rewrites that role's identity authority",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_02.json",
+      "matrix_entries": 396,
+      "flips_to_deny_expected": 2,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_02_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 3,
+      "mechanism": "put-user-policy",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "iam:PutUserPolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:PutUserPolicy; attached scenario_03_boundary to user scenario_03_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may write an inline policy onto another user, which rewrites that user's identity authority",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_03.json",
+      "matrix_entries": 352,
+      "flips_to_deny_expected": 1,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_03_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 4,
+      "mechanism": "put-role-policy",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "iam:PutRolePolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:PutRolePolicy; arn:aws:iam::000000000000:user/scenario_04_attacker may assume arn:aws:iam::000000000000:role/scenario_04_analyst_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; attached scenario_04_boundary to user scenario_04_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may write an inline policy onto a role, which rewrites that role's identity authority",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_04.json",
+      "matrix_entries": 352,
+      "flips_to_deny_expected": 2,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_04_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 5,
+      "mechanism": "s3-missing-secure-transport",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_05_data; confirmed BlockPublicAccess on scenario_05_data; arn:aws:iam::000000000000:user/scenario_05_attacker may s3:GetObject arn:aws:s3:::scenario_05_data/bundles/b01.zip; dropped s3:GetObject from a statement that keeps ['s3:ListBucket']; appended an explicit Deny for s3:GetObject to bucket:scenario_05_data; permissions boundary not applicable: the control is a bucket-policy transport condition, a resource-policy matter",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_05.json",
+      "matrix_entries": 210,
+      "flips_to_deny_expected": 5,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 6,
+      "mechanism": "s3-missing-block-public-access",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_06_data; confirmed BlockPublicAccess on scenario_06_data; scoped the Principal of PublicRead on scenario_06_data from * to arn:aws:iam::000000000000:user/scenario_06_service; permissions boundary not applicable: the control is a bucket-policy Principal scope, a resource-policy matter",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_06.json",
+      "matrix_entries": 210,
+      "flips_to_deny_expected": 5,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 7,
+      "mechanism": "update-assume-role-policy",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "iam:UpdateAssumeRolePolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:UpdateAssumeRolePolicy; attached scenario_07_boundary to user scenario_07_attacker: 1 matrix-allowed pair(s), 1 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may replace a role's trust policy, which rewrites who that role's identity answers to",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_07.json",
+      "matrix_entries": 352,
+      "flips_to_deny_expected": 1,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_07_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 8,
+      "mechanism": "pass-role-run-instances",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": false,
+      "remediation_summary": "bound iam:PassRole in user:scenario_08_attacker/escalate to iam:PassedToService=ec2.amazonaws.com; arn:aws:iam::000000000000:user/scenario_08_attacker may ec2:RunInstances arn:aws:ec2:us-east-1:000000000000:instance/i-228711b8ca09e36da; the grant hid behind a wildcard, so it is replaced by an explicit Deny for ec2:RunInstances; attached scenario_08_boundary to user scenario_08_attacker: 1 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may hand a privileged role to a service it launches",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_08.json",
+      "matrix_entries": 396,
+      "flips_to_deny_expected": 0,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_08_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 9,
+      "mechanism": "pass-role-create-function",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "bound iam:PassRole in user:scenario_09_attacker/escalate to iam:PassedToService=lambda.amazonaws.com; arn:aws:iam::000000000000:user/scenario_09_attacker may lambda:CreateFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_09_job_function; dropped lambda:CreateFunction from a statement that keeps ['lambda:InvokeFunction']; arn:aws:iam::000000000000:user/scenario_09_attacker may lambda:InvokeFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_09_job_function; the grant hid behind a wildcard, so it is replaced by an explicit Deny for lambda:InvokeFunction; attached scenario_09_boundary to user scenario_09_attacker: 1 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may hand a privileged role to a function it creates",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_09.json",
+      "matrix_entries": 396,
+      "flips_to_deny_expected": 0,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_09_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 10,
+      "mechanism": "update-function-code",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_10_attacker may lambda:UpdateFunctionCode arn:aws:lambda:us-east-1:000000000000:function:scenario_10_dispatcher; dropped lambda:UpdateFunctionCode from a statement that keeps ['lambda:InvokeFunction', 'lambda:GetFunction']; arn:aws:iam::000000000000:user/scenario_10_attacker may lambda:InvokeFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_10_dispatcher; dropped lambda:InvokeFunction from a statement that keeps ['lambda:GetFunction']; permissions boundary not applicable: the control is on a function's code, not on the caller's identity",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_10.json",
+      "matrix_entries": 352,
+      "flips_to_deny_expected": 0,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 11,
+      "mechanism": "lambda-proxy-bypass",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_11_data; confirmed BlockPublicAccess on scenario_11_data; arn:aws:iam::000000000000:user/scenario_11_attacker may lambda:InvokeFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_11_proxy; the grant hid behind a wildcard, so it is replaced by an explicit Deny for lambda:InvokeFunction; permissions boundary not applicable: the control is on a function's runtime body, not on the caller's identity",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_11.json",
+      "matrix_entries": 320,
+      "flips_to_deny_expected": 2,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 12,
+      "mechanism": "pass-role-passtoservice-wildcard",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_12_attacker may lambda:CreateFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_12_reporter; dropped lambda:CreateFunction from a statement that keeps ['lambda:InvokeFunction']; attached scenario_12_boundary to user scenario_12_attacker: 3 matrix-allowed pair(s), 1 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may hand a privileged role to any service",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_12.json",
+      "matrix_entries": 550,
+      "flips_to_deny_expected": 0,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_12_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 13,
+      "mechanism": "create-access-key",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "iam:CreateAccessKey lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:CreateAccessKey; attached scenario_13_boundary to user scenario_13_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may mint a long-term credential for another identity",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_13.json",
+      "matrix_entries": 396,
+      "flips_to_deny_expected": 2,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_13_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 14,
+      "mechanism": "update-login-profile",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": false,
+      "remediation_summary": "iam:UpdateLoginProfile lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:UpdateLoginProfile; attached scenario_14_boundary to user scenario_14_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may set another identity's console password",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_14.json",
+      "matrix_entries": 396,
+      "flips_to_deny_expected": 1,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_14_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 15,
+      "mechanism": "add-user-to-group",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "bound iam:PassRole in group:scenario_15_platform_admins/administrator to iam:PassedToService=lambda.amazonaws.com; iam:AddUserToGroup lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:AddUserToGroup; iam:CreatePolicyVersion lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:CreatePolicyVersion; arn:aws:iam::000000000000:user/scenario_15_attacker may s3:GetObject arn:aws:s3:::scenario_15_data/platform/secrets.json; dropped s3:GetObject from a statement that keeps ['s3:ListBucket']; attached scenario_15_boundary to user scenario_15_attacker: 1 matrix-allowed pair(s), 1 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may add itself to a group whose identity authority it was never granted directly",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_15.json",
+      "matrix_entries": 264,
+      "flips_to_deny_expected": 2,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_15_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 16,
+      "mechanism": "attach-user-policy-self",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "iam:AttachUserPolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:AttachUserPolicy; attached scenario_16_boundary to user scenario_16_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may attach a policy to its own user",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_16.json",
+      "matrix_entries": 396,
+      "flips_to_deny_expected": 2,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "user/scenario_16_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 17,
+      "mechanism": "send-command-via-instance-role",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": false,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_17_attacker may assume arn:aws:iam::000000000000:role/scenario_17_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a role-assumption edge; its control is the role's trust policy, which a permissions boundary cannot reach",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_17.json",
+      "matrix_entries": 495,
+      "flips_to_deny_expected": 1,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 18,
+      "mechanism": "assume-send-command-plaintext-s3",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_18_data; confirmed BlockPublicAccess on scenario_18_data; arn:aws:iam::000000000000:user/scenario_18_attacker may assume arn:aws:iam::000000000000:role/scenario_18_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a trust relationship; a boundary on the entry user would only repeat the grant revocation the trust narrowing already performs",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_18.json",
+      "matrix_entries": 495,
+      "flips_to_deny_expected": 3,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 19,
+      "mechanism": "assume-send-command-kms-decrypt",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_19_data; confirmed BlockPublicAccess on scenario_19_data; arn:aws:iam::000000000000:user/scenario_19_attacker may assume arn:aws:iam::000000000000:role/scenario_19_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a trust relationship; the control belongs in the role's trust policy",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_19.json",
+      "matrix_entries": 495,
+      "flips_to_deny_expected": 2,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 20,
+      "mechanism": "assume-update-function-config-s3",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_20_attacker may assume arn:aws:iam::000000000000:role/scenario_20_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a trust relationship; the control belongs in the role's trust policy",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_20.json",
+      "matrix_entries": 495,
+      "flips_to_deny_expected": 1,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 21,
+      "mechanism": "assume-chained-twice",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_21_attacker may assume arn:aws:iam::000000000000:role/scenario_21_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels two trust relationships; the control belongs in the trust policies",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_21.json",
+      "matrix_entries": 600,
+      "flips_to_deny_expected": 1,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 22,
+      "mechanism": "assume-update-function-code-exfiltrate",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_22_attacker may assume arn:aws:iam::000000000000:role/scenario_22_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a trust relationship; the control belongs in the role's trust policy",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_22.json",
+      "matrix_entries": 495,
+      "flips_to_deny_expected": 1,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 23,
+      "mechanism": "assume-wildcard-trust",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_23_attacker may assume arn:aws:iam::000000000000:role/scenario_23_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the control is a wildcard Principal in a trust policy, a resource-policy matter",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_23.json",
+      "matrix_entries": 660,
+      "flips_to_deny_expected": 1,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    },
+    {
+      "scenario": 24,
+      "mechanism": "assume-passrole-create-function",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "bound iam:PassRole in role:scenario_24_support_role/support-reach to iam:PassedToService=lambda.amazonaws.com; arn:aws:iam::000000000000:user/scenario_24_attacker may assume arn:aws:iam::000000000000:role/scenario_24_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; attached scenario_24_boundary to user scenario_24_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; attached scenario_24_boundary-scenario_24_support_role to role scenario_24_support_role: 2 matrix-allowed pair(s), 1 literal allow statement(s) retained; boundary chosen as the primary control because the role the entry principal assumes may hand on a privileged role",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_24.json",
+      "matrix_entries": 495,
+      "flips_to_deny_expected": 1,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [
+        "role/scenario_24_support_role",
+        "user/scenario_24_attacker"
+      ],
+      "limitations": []
+    },
+    {
+      "scenario": 25,
+      "mechanism": "assume-send-command-plaintext-legacy-bucket",
+      "patched": true,
+      "exploit_blocked": true,
+      "pre_patch_exploited": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_25_legacy; confirmed BlockPublicAccess on scenario_25_legacy; arn:aws:iam::000000000000:user/scenario_25_attacker may assume arn:aws:iam::000000000000:role/scenario_25_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the control is a bucket-policy transport condition reached through a trust relationship",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_25.json",
+      "matrix_entries": 495,
+      "flips_to_deny_expected": 5,
+      "flips_to_deny_collateral": 0,
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "boundaries": [],
+      "limitations": []
+    }
+  ],
+  "limitations": [
+    "Scenarios 08, 14 and 17 were not exploitable before the patch (emulator resource-shape limits, see Phase 3), so 'exploit_blocked' there is not evidence that their remediation works: it records the pre-existing block, and their diff is still emitted for review.",
+    "The 1250-call benign suite addresses `scenario_NN_artifacts` and never the vulnerable `*_data` buckets, so a benign pass rate of 1.0 alone is vacuous. The decision matrix and the designated-reader probes are the evidence that the patch is not over-broad.",
+    "`sts:AssumeRole` entries whose target trust policy was narrowed are counted as expected flips rather than collateral: a wildcard trust has no single caller whose access could be preserved, and the contract explicitly authorises remediating the role-assumption chains.",
+    "Scenario 11's confused-deputy bug lives in the function body rather than in a policy document, so no policy edit can prove the proxy re-checks its caller; the diff blocks the chain at the bucket grant instead, and the confused deputy itself remains in the code.",
+    "The patch is applied to the local emulator's live state and verified against it; it is not rendered into `scenarios/*.tf`, which this phase may not modify, so the diffs are the deliverable and a re-apply on a fresh deployment must go through them.",
+    "Scenarios 08, 14 and 17 also received a patch even though nothing was proven exploitable, so their diffs are reviewed for minimality rather than justified by a blocked chain."
+  ],
+  "detail": [
+    {
+      "scenario": 1,
+      "mechanism": "create-policy-version",
+      "title": "iam:CreatePolicyVersion rewrites the policy attached to a role the caller can assume",
+      "declared_actions": [
+        "iam:CreatePolicyVersion",
+        "sts:AssumeRole"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "iam:CreatePolicyVersion lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:CreatePolicyVersion; arn:aws:iam::000000000000:user/scenario_01_attacker may assume arn:aws:iam::000000000000:role/scenario_01_reader_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; attached scenario_01_boundary to user scenario_01_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may mint a new default version of an existing managed policy, which is authority over an identity",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_01.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_01_artifacts/exports/e01.csv",
+        "as": "arn:aws:iam::000000000000:role/scenario_01_reader_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for exports/e01.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_01_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 10,
+      "allowed_post_patch": 8,
+      "matrix_entries": 396,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_01_attacker",
+          "action": "iam:CreatePolicyVersion",
+          "resource": "arn:aws:iam::000000000000:policy/scenario_01_DataAccessCandidate",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_01_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_01_reader_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_01_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_01_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_01_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_01_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_01_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_01_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_01_reader_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_01_data/reports/q1.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_01_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_01_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_01_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_01_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_01_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_01_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_01_reader_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_01_data/reports/q1.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 16,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_01_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_01_reader_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_01_attacker"
+      ]
+    },
+    {
+      "scenario": 2,
+      "mechanism": "attach-role-policy",
+      "title": "iam:AttachRolePolicy attaches AdministratorAccess-equivalent to an assumable role",
+      "declared_actions": [
+        "iam:AttachRolePolicy",
+        "sts:AssumeRole"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "iam:AttachRolePolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:AttachRolePolicy; arn:aws:iam::000000000000:user/scenario_02_attacker may assume arn:aws:iam::000000000000:role/scenario_02_ops_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; attached scenario_02_boundary to user scenario_02_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may attach a policy to a role, which rewrites that role's identity authority",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_02.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_02_artifacts/exports/e01.csv",
+        "as": "arn:aws:iam::000000000000:role/scenario_02_ops_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for exports/e01.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_02_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 10,
+      "allowed_post_patch": 8,
+      "matrix_entries": 396,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_02_attacker",
+          "action": "iam:AttachRolePolicy",
+          "resource": "arn:aws:iam::000000000000:role/scenario_02_ops_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_02_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_02_ops_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_02_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_02_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_02_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_02_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_02_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_02_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_02_ops_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_02_data/reports/q1.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_02_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_02_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_02_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_02_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_02_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_02_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_02_ops_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_02_data/reports/q1.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 15,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_02_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_02_ops_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_02_attacker"
+      ]
+    },
+    {
+      "scenario": 3,
+      "mechanism": "put-user-policy",
+      "title": "iam:PutUserPolicy writes an inline grant onto a user whose access keys the caller holds",
+      "declared_actions": [
+        "iam:PutUserPolicy"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "iam:PutUserPolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:PutUserPolicy; attached scenario_03_boundary to user scenario_03_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may write an inline policy onto another user, which rewrites that user's identity authority",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_03.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_03_data/inbox/a.json",
+        "as": "arn:aws:iam::000000000000:user/scenario_03_sync",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for inbox/a.json'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_03_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 9,
+      "allowed_post_patch": 8,
+      "matrix_entries": 352,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_03_attacker",
+          "action": "iam:PutUserPolicy",
+          "resource": "arn:aws:iam::000000000000:user/scenario_03_sync",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_03_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_03_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_03_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_03_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_03_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_03_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_03_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_03_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_03_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_03_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_03_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_03_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 12,
+      "cut_hops": [],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_03_attacker"
+      ]
+    },
+    {
+      "scenario": 4,
+      "mechanism": "put-role-policy",
+      "title": "iam:PutRolePolicy writes an inline grant onto a privileged role",
+      "declared_actions": [
+        "iam:PutRolePolicy",
+        "sts:AssumeRole"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "iam:PutRolePolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:PutRolePolicy; arn:aws:iam::000000000000:user/scenario_04_attacker may assume arn:aws:iam::000000000000:role/scenario_04_analyst_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; attached scenario_04_boundary to user scenario_04_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may write an inline policy onto a role, which rewrites that role's identity authority",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_04.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_04_artifacts/exports/e01.csv",
+        "as": "arn:aws:iam::000000000000:role/scenario_04_analyst_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for exports/e01.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_04_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 10,
+      "allowed_post_patch": 8,
+      "matrix_entries": 352,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_04_attacker",
+          "action": "iam:PutRolePolicy",
+          "resource": "arn:aws:iam::000000000000:role/scenario_04_analyst_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_04_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_04_analyst_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_04_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_04_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_04_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_04_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_04_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_04_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_04_analyst_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_04_data/warehouse/facts.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_04_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_04_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_04_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_04_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_04_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_04_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_04_analyst_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_04_data/warehouse/facts.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 14,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_04_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_04_analyst_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_04_attacker"
+      ]
+    },
+    {
+      "scenario": 5,
+      "mechanism": "s3-missing-secure-transport",
+      "title": "S3 bucket policy omits the aws:SecureTransport deny, so plaintext reads are allowed",
+      "declared_actions": [
+        "s3:GetObject"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_05_data; confirmed BlockPublicAccess on scenario_05_data; arn:aws:iam::000000000000:user/scenario_05_attacker may s3:GetObject arn:aws:s3:::scenario_05_data/bundles/b01.zip; dropped s3:GetObject from a statement that keeps ['s3:ListBucket']; appended an explicit Deny for s3:GetObject to bucket:scenario_05_data; permissions boundary not applicable: the control is a bucket-policy transport condition, a resource-policy matter",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_05.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_05_data/bundles/b01.zip",
+        "as": "arn:aws:iam::000000000000:user/scenario_05_attacker",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for bundles/b01.zip'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_05_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 14,
+      "allowed_post_patch": 9,
+      "matrix_entries": 210,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_attacker",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_05_data",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_attacker",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_05_data/bundles/b01.zip",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_attacker",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_05_data/bundles/b01.zip",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_attacker",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_05_data",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_attacker",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_05_data/bundles/b01.zip",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_05_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_05_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_05_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_05_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_05_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_05_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 14,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_05_attacker",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_05_data/bundles/b01.zip"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [
+        "scenario_05_data"
+      ],
+      "boundaries": []
+    },
+    {
+      "scenario": 6,
+      "mechanism": "s3-missing-block-public-access",
+      "title": "S3 bucket ships a public-read ACL and a permissive policy with BlockPublicAccess off",
+      "declared_actions": [
+        "s3:GetObject"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_06_data; confirmed BlockPublicAccess on scenario_06_data; scoped the Principal of PublicRead on scenario_06_data from * to arn:aws:iam::000000000000:user/scenario_06_service; permissions boundary not applicable: the control is a bucket-policy Principal scope, a resource-policy matter",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_06.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_06_data/public/brochure.pdf",
+        "as": "arn:aws:iam::000000000000:user/scenario_06_attacker",
+        "via": "resource-policy",
+        "result": "read 'synthetic payload for public/brochure.pdf'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_06_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 12,
+      "allowed_post_patch": 7,
+      "matrix_entries": 210,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_06_reporter_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_06_data/public/brochure.pdf",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ImplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_06_reporter_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_06_data/public/brochure.pdf",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_attacker",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_06_data/public/brochure.pdf",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ImplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_attacker",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_06_data/public/brochure.pdf",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_06_data/public/brochure.pdf",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_06_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_06_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_06_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_06_data/public/brochure.pdf",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_06_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_06_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_06_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_06_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_06_data/public/brochure.pdf",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 17,
+      "cut_hops": [],
+      "trust_narrowed": [],
+      "transport_buckets": [
+        "scenario_06_data"
+      ],
+      "boundaries": []
+    },
+    {
+      "scenario": 7,
+      "mechanism": "update-assume-role-policy",
+      "title": "iam:UpdateAssumeRolePolicy rewrites a role's trust policy to trust the caller",
+      "declared_actions": [
+        "iam:UpdateAssumeRolePolicy",
+        "sts:AssumeRole"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "iam:UpdateAssumeRolePolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:UpdateAssumeRolePolicy; attached scenario_07_boundary to user scenario_07_attacker: 1 matrix-allowed pair(s), 1 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may replace a role's trust policy, which rewrites who that role's identity answers to",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_07.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_07_data/artifacts/app.tar.gz",
+        "as": "arn:aws:iam::000000000000:role/scenario_07_pipeline_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for artifacts/app.tar.gz'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_07_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 10,
+      "allowed_post_patch": 9,
+      "matrix_entries": 352,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_07_attacker",
+          "action": "iam:UpdateAssumeRolePolicy",
+          "resource": "arn:aws:iam::000000000000:role/scenario_07_pipeline_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_07_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_07_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_07_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_07_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_07_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_07_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_07_pipeline_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_07_data/artifacts/app.tar.gz",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_07_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_07_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_07_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_07_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_07_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_07_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_07_pipeline_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_07_data/artifacts/app.tar.gz",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 14,
+      "cut_hops": [],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_07_attacker"
+      ]
+    },
+    {
+      "scenario": 8,
+      "mechanism": "pass-role-run-instances",
+      "title": "iam:PassRole plus ec2:RunInstances hands a privileged role to new compute",
+      "declared_actions": [
+        "iam:PassRole",
+        "ec2:RunInstances"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "bound iam:PassRole in user:scenario_08_attacker/escalate to iam:PassedToService=ec2.amazonaws.com; arn:aws:iam::000000000000:user/scenario_08_attacker may ec2:RunInstances arn:aws:ec2:us-east-1:000000000000:instance/i-228711b8ca09e36da; the grant hid behind a wildcard, so it is replaced by an explicit Deny for ec2:RunInstances; attached scenario_08_boundary to user scenario_08_attacker: 1 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may hand a privileged role to a service it launches",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_08.json",
+      "limitations": [],
+      "pre_patch_exploited": false,
+      "pre_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_08_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 106,
+      "allowed_post_patch": 106,
+      "matrix_entries": 396,
+      "flips_expected": [],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_08_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_08_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_08_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_08_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_08_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_08_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_08_worker_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_08_data/batches/2026-01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_08_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_08_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_08_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_08_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_08_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_08_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_08_worker_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_08_data/batches/2026-01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 207,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_08_attacker",
+          "action": "ec2:RunInstances",
+          "resource": "arn:aws:ec2:us-east-1:000000000000:instance/i-228711b8ca09e36da"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_08_attacker"
+      ]
+    },
+    {
+      "scenario": 9,
+      "mechanism": "pass-role-create-function",
+      "title": "iam:PassRole plus lambda:CreateFunction stands up a function carrying a privileged role",
+      "declared_actions": [
+        "iam:PassRole",
+        "lambda:CreateFunction",
+        "lambda:InvokeFunction"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "bound iam:PassRole in user:scenario_09_attacker/escalate to iam:PassedToService=lambda.amazonaws.com; arn:aws:iam::000000000000:user/scenario_09_attacker may lambda:CreateFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_09_job_function; dropped lambda:CreateFunction from a statement that keeps ['lambda:InvokeFunction']; arn:aws:iam::000000000000:user/scenario_09_attacker may lambda:InvokeFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_09_job_function; the grant hid behind a wildcard, so it is replaced by an explicit Deny for lambda:InvokeFunction; attached scenario_09_boundary to user scenario_09_attacker: 1 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may hand a privileged role to a function it creates",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_09.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_09_data/batch/input.csv",
+        "as": "arn:aws:iam::000000000000:role/scenario_09_job_role",
+        "via": "plaintext",
+        "result": "scenario_09_escalation read synthetic payload for batch/input.csv",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_09_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 106,
+      "allowed_post_patch": 106,
+      "matrix_entries": 396,
+      "flips_expected": [],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_09_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_09_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_09_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_09_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_09_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_09_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_09_job_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_09_data/batch/input.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_09_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_09_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_09_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_09_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_09_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_09_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_09_job_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_09_data/batch/input.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 54,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_09_attacker",
+          "action": "lambda:CreateFunction",
+          "resource": "arn:aws:lambda:us-east-1:000000000000:function:scenario_09_job_function"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_09_attacker",
+          "action": "lambda:InvokeFunction",
+          "resource": "arn:aws:lambda:us-east-1:000000000000:function:scenario_09_job_function"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_09_attacker"
+      ]
+    },
+    {
+      "scenario": 10,
+      "mechanism": "update-function-code",
+      "title": "lambda:UpdateFunctionCode replaces an existing privileged function's code",
+      "declared_actions": [
+        "lambda:UpdateFunctionCode",
+        "lambda:InvokeFunction"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_10_attacker may lambda:UpdateFunctionCode arn:aws:lambda:us-east-1:000000000000:function:scenario_10_dispatcher; dropped lambda:UpdateFunctionCode from a statement that keeps ['lambda:InvokeFunction', 'lambda:GetFunction']; arn:aws:iam::000000000000:user/scenario_10_attacker may lambda:InvokeFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_10_dispatcher; dropped lambda:InvokeFunction from a statement that keeps ['lambda:GetFunction']; permissions boundary not applicable: the control is on a function's code, not on the caller's identity",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_10.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_10_data/inbound/partner-a.json",
+        "as": "arn:aws:iam::000000000000:role/scenario_10_dispatcher_role",
+        "via": "plaintext",
+        "result": "scenario_10_dispatcher read synthetic payload for inbound/partner-a.json",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_10_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 8,
+      "allowed_post_patch": 8,
+      "matrix_entries": 352,
+      "flips_expected": [],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_10_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_10_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_10_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_10_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_10_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_10_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_10_dispatcher_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_10_data/inbound/partner-a.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_10_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_10_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_10_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_10_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_10_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_10_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_10_dispatcher_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_10_data/inbound/partner-a.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 17,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_10_attacker",
+          "action": "lambda:InvokeFunction",
+          "resource": "arn:aws:lambda:us-east-1:000000000000:function:scenario_10_dispatcher"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_10_attacker",
+          "action": "lambda:UpdateFunctionCode",
+          "resource": "arn:aws:lambda:us-east-1:000000000000:function:scenario_10_dispatcher"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": []
+    },
+    {
+      "scenario": 11,
+      "mechanism": "lambda-proxy-bypass",
+      "title": "lambda:InvokeFunction on a privileged dispatcher proxies the caller into its data plane",
+      "declared_actions": [
+        "lambda:InvokeFunction"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_11_data; confirmed BlockPublicAccess on scenario_11_data; arn:aws:iam::000000000000:user/scenario_11_attacker may lambda:InvokeFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_11_proxy; the grant hid behind a wildcard, so it is replaced by an explicit Deny for lambda:InvokeFunction; permissions boundary not applicable: the control is on a function's runtime body, not on the caller's identity",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_11.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_11_data/reports/summary.json",
+        "as": "arn:aws:iam::000000000000:role/scenario_11_proxy_role",
+        "via": "plaintext",
+        "result": "scenario_11_proxy read synthetic payload for reports/summary.json",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_11_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 10,
+      "allowed_post_patch": 8,
+      "matrix_entries": 320,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_11_proxy_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_11_data/reports/summary.json",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_11_proxy_role",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_11_data/reports/summary.json",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_11_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_11_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_11_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_11_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_11_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_11_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_11_proxy_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_11_data/reports/summary.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_11_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_11_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_11_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_11_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_11_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_11_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_11_proxy_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_11_data/reports/summary.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 16,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_11_attacker",
+          "action": "lambda:InvokeFunction",
+          "resource": "arn:aws:lambda:us-east-1:000000000000:function:scenario_11_proxy"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [
+        "scenario_11_data"
+      ],
+      "boundaries": []
+    },
+    {
+      "scenario": 12,
+      "mechanism": "pass-role-passtoservice-wildcard",
+      "title": "iam:PassRole gated only by iam:PassedToService, so any role can be handed to Lambda",
+      "declared_actions": [
+        "iam:PassRole",
+        "lambda:CreateFunction",
+        "lambda:InvokeFunction"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_12_attacker may lambda:CreateFunction arn:aws:lambda:us-east-1:000000000000:function:scenario_12_reporter; dropped lambda:CreateFunction from a statement that keeps ['lambda:InvokeFunction']; attached scenario_12_boundary to user scenario_12_attacker: 3 matrix-allowed pair(s), 1 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may hand a privileged role to any service",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_12.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_12_data/finance/payroll.xlsx",
+        "as": "arn:aws:iam::000000000000:role/scenario_12_finance_role",
+        "via": "plaintext",
+        "result": "scenario_12_escalation read synthetic payload for finance/payroll.xlsx",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_12_attacker",
+        "action": "lambda:InvokeFunction",
+        "resource": "arn:aws:lambda:us-east-1:000000000000:function:scenario_12_reporter",
+        "to": "arn:aws:iam::000000000000:role/scenario_12_reporter_role",
+        "kind": "proxy-invoke",
+        "decision": {
+          "allowed": true,
+          "reason": "identity policy allows (invokes arn:aws:lambda:us-east-1:000000000000:function:scenario_12_reporter)"
+        },
+        "executed": true,
+        "succeeded": false,
+        "error": "RuntimeError: scenario_12_reporter returned no object body: b'{\"statusCode\": 200, \"body\": \"{\\\\\"received\\\\\": {\\\\\"bucket\\\\\": \\\\\"scenario_12_data\\\\\", \\\\\"key\\\\\": \\\\\"finance/payroll.xlsx\\\\\"}}\"}'"
+      },
+      "allowed_pre_patch": 119,
+      "allowed_post_patch": 119,
+      "matrix_entries": 550,
+      "flips_expected": [],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_12_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_12_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_12_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_12_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_12_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_12_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_12_finance_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_12_data/finance/q1.xlsx",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_12_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_12_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_12_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_12_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_12_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_12_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_12_finance_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_12_data/finance/q1.xlsx",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 57,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_12_attacker",
+          "action": "lambda:CreateFunction",
+          "resource": "arn:aws:lambda:us-east-1:000000000000:function:scenario_12_reporter"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_12_attacker"
+      ]
+    },
+    {
+      "scenario": 13,
+      "mechanism": "create-access-key",
+      "title": "iam:CreateAccessKey mints long-lived keys for a more privileged user",
+      "declared_actions": [
+        "iam:CreateAccessKey"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "iam:CreateAccessKey lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:CreateAccessKey; attached scenario_13_boundary to user scenario_13_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may mint a long-term credential for another identity",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_13.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_13_data/ledger/2026-01.csv",
+        "as": "arn:aws:iam::000000000000:user/scenario_13_admin",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for ledger/2026-01.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_13_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 107,
+      "allowed_post_patch": 105,
+      "matrix_entries": 396,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_attacker",
+          "action": "iam:CreateAccessKey",
+          "resource": "arn:aws:iam::000000000000:user/scenario_13_admin",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_attacker",
+          "action": "iam:CreateAccessKey",
+          "resource": "arn:aws:iam::000000000000:user/scenario_13_attacker",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_13_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_13_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_13_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_admin",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_13_data/ledger/2026-01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_13_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_13_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_13_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_13_admin",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_13_data/ledger/2026-01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 45,
+      "cut_hops": [],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_13_attacker"
+      ]
+    },
+    {
+      "scenario": 14,
+      "mechanism": "update-login-profile",
+      "title": "iam:UpdateLoginProfile resets an administrator's console password",
+      "declared_actions": [
+        "iam:UpdateLoginProfile"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "iam:UpdateLoginProfile lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:UpdateLoginProfile; attached scenario_14_boundary to user scenario_14_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may set another identity's console password",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_14.json",
+      "limitations": [],
+      "pre_patch_exploited": false,
+      "pre_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_14_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 106,
+      "allowed_post_patch": 105,
+      "matrix_entries": 396,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_14_attacker",
+          "action": "iam:UpdateLoginProfile",
+          "resource": "arn:aws:iam::000000000000:user/scenario_14_admin",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_14_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_14_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_14_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_14_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_14_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_14_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_14_admin",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_14_data/audit/logins.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_14_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_14_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_14_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_14_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_14_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_14_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_14_admin",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_14_data/audit/logins.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 44,
+      "cut_hops": [],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_14_attacker"
+      ]
+    },
+    {
+      "scenario": 15,
+      "mechanism": "add-user-to-group",
+      "title": "iam:AddUserToGroup joins the caller to a group carrying AdministratorAccess",
+      "declared_actions": [
+        "iam:AddUserToGroup"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "bound iam:PassRole in group:scenario_15_platform_admins/administrator to iam:PassedToService=lambda.amazonaws.com; iam:AddUserToGroup lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:AddUserToGroup; iam:CreatePolicyVersion lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:CreatePolicyVersion; arn:aws:iam::000000000000:user/scenario_15_attacker may s3:GetObject arn:aws:s3:::scenario_15_data/platform/secrets.json; dropped s3:GetObject from a statement that keeps ['s3:ListBucket']; attached scenario_15_boundary to user scenario_15_attacker: 1 matrix-allowed pair(s), 1 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may add itself to a group whose identity authority it was never granted directly",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_15.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_15_artifacts/exports/e01.csv",
+        "as": "arn:aws:iam::000000000000:user/scenario_15_attacker",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for exports/e01.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_15_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 10,
+      "allowed_post_patch": 8,
+      "matrix_entries": 264,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_15_attacker",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_15_data/platform/state.json",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ImplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_15_attacker",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_15_data/platform/state.json",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ImplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_15_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_15_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_15_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_15_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_15_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_15_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_15_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_15_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_15_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_15_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_15_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_15_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 14,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_15_attacker",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_15_data/platform/secrets.json"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_15_attacker"
+      ]
+    },
+    {
+      "scenario": 16,
+      "mechanism": "attach-user-policy-self",
+      "title": "iam:AttachUserPolicy on the caller's own user attaches AdministratorAccess",
+      "declared_actions": [
+        "iam:AttachUserPolicy"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "iam:AttachUserPolicy lets the holder mint authority it was never granted; the grant hid behind a wildcard, so it is replaced by an explicit Deny for iam:AttachUserPolicy; attached scenario_16_boundary to user scenario_16_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; boundary chosen as the primary control because the entry principal may attach a policy to its own user",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_16.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_16_data/restricted/finance.csv",
+        "as": "arn:aws:iam::000000000000:user/scenario_16_attacker",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for restricted/finance.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_16_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 10,
+      "allowed_post_patch": 8,
+      "matrix_entries": 396,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_attacker",
+          "action": "iam:AttachUserPolicy",
+          "resource": "arn:aws:iam::000000000000:user/scenario_16_attacker",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_attacker",
+          "action": "iam:AttachUserPolicy",
+          "resource": "arn:aws:iam::000000000000:user/scenario_16_contractor",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_16_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_16_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_16_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_contractor",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_16_data/shared/handbook.pdf",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_16_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_16_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_16_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_16_contractor",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_16_data/shared/handbook.pdf",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 14,
+      "cut_hops": [],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "user/scenario_16_attacker"
+      ]
+    },
+    {
+      "scenario": 17,
+      "mechanism": "send-command-via-instance-role",
+      "title": "ssm:SendCommand reaches an instance whose profile carries a second, privileged role",
+      "declared_actions": [
+        "sts:AssumeRole",
+        "ssm:SendCommand"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_17_attacker may assume arn:aws:iam::000000000000:role/scenario_17_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a role-assumption edge; its control is the role's trust policy, which a permissions boundary cannot reach",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_17.json",
+      "limitations": [],
+      "pre_patch_exploited": false,
+      "pre_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_17_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 9,
+      "allowed_post_patch": 8,
+      "matrix_entries": 495,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_17_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_17_support_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_17_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_17_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_17_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_17_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_17_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_17_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_17_warehouse_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_17_data/ledger.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_17_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_17_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_17_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_17_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_17_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_17_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_17_warehouse_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_17_data/ledger.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 111,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_17_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_17_support_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": []
+    },
+    {
+      "scenario": 18,
+      "mechanism": "assume-send-command-plaintext-s3",
+      "title": "sts:AssumeRole to a support role, ssm:SendCommand, then a plaintext S3 read",
+      "declared_actions": [
+        "sts:AssumeRole",
+        "ssm:SendCommand",
+        "s3:GetObject"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_18_data; confirmed BlockPublicAccess on scenario_18_data; arn:aws:iam::000000000000:user/scenario_18_attacker may assume arn:aws:iam::000000000000:role/scenario_18_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a trust relationship; a boundary on the entry user would only repeat the grant revocation the trust narrowing already performs",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_18.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_18_data/exports/e01.csv",
+        "as": "arn:aws:iam::000000000000:role/scenario_18_data_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for exports/e01.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_18_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 12,
+      "allowed_post_patch": 9,
+      "matrix_entries": 495,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_18_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_18_data/exports/e01.csv",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_18_data_role",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_18_data/exports/e01.csv",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_18_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_18_support_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_18_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_18_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_18_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_18_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_18_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_18_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_18_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_18_data/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_18_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_18_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_18_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_18_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_18_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_18_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_18_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_18_data/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 16,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_18_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_18_support_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [
+        "scenario_18_data"
+      ],
+      "boundaries": []
+    },
+    {
+      "scenario": 19,
+      "mechanism": "assume-send-command-kms-decrypt",
+      "title": "sts:AssumeRole, ssm:SendCommand, then kms:Decrypt plus an S3 read",
+      "declared_actions": [
+        "sts:AssumeRole",
+        "ssm:SendCommand",
+        "kms:Decrypt",
+        "s3:GetObject"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_19_data; confirmed BlockPublicAccess on scenario_19_data; arn:aws:iam::000000000000:user/scenario_19_attacker may assume arn:aws:iam::000000000000:role/scenario_19_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a trust relationship; the control belongs in the role's trust policy",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_19.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "kms:Decrypt",
+        "resource": "arn:aws:kms:us-east-1:000000000000:key/5adf3dbe-dbad-4abc-82f9-c4222fab0c2a",
+        "as": "arn:aws:iam::000000000000:role/scenario_19_data_role",
+        "via": "identity",
+        "result": "decrypted 'synthetic payload for sealed/led' from sealed/ledger.enc",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_19_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 10,
+      "allowed_post_patch": 8,
+      "matrix_entries": 495,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_19_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_19_data/sealed/ledger.enc",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_19_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_19_support_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_19_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_19_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_19_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_19_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_19_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_19_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_19_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_19_data/sealed/ledger.enc",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_19_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_19_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_19_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_19_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_19_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_19_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_19_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_19_data/sealed/ledger.enc",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 16,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_19_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_19_support_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [
+        "scenario_19_data"
+      ],
+      "boundaries": []
+    },
+    {
+      "scenario": 20,
+      "mechanism": "assume-update-function-config-s3",
+      "title": "sts:AssumeRole, then lambda:UpdateFunctionConfiguration, then an S3 read",
+      "declared_actions": [
+        "sts:AssumeRole",
+        "lambda:UpdateFunctionConfiguration",
+        "s3:GetObject"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_20_attacker may assume arn:aws:iam::000000000000:role/scenario_20_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a trust relationship; the control belongs in the role's trust policy",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_20.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_20_data/exports/e01.csv",
+        "as": "arn:aws:iam::000000000000:role/scenario_20_data_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for exports/e01.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_20_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 12,
+      "allowed_post_patch": 11,
+      "matrix_entries": 495,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_20_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_20_support_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_20_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_20_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_20_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_20_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_20_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_20_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_20_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_20_data/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_20_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_20_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_20_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_20_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_20_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_20_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_20_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_20_data/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 20,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_20_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_20_support_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": []
+    },
+    {
+      "scenario": 21,
+      "mechanism": "assume-chained-twice",
+      "title": "sts:AssumeRole twice in sequence (support -> analytics -> data), then an S3 read",
+      "declared_actions": [
+        "sts:AssumeRole",
+        "s3:GetObject"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_21_attacker may assume arn:aws:iam::000000000000:role/scenario_21_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels two trust relationships; the control belongs in the trust policies",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_21.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_21_data/analytics/inputs.csv",
+        "as": "arn:aws:iam::000000000000:role/scenario_21_data_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for analytics/inputs.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_21_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 13,
+      "allowed_post_patch": 12,
+      "matrix_entries": 600,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_21_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_21_support_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_21_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_21_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_21_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_21_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_21_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_21_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_21_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_21_data/analytics/model.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_21_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_21_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_21_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_21_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_21_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_21_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_21_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_21_data/analytics/model.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 16,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_21_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_21_support_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": []
+    },
+    {
+      "scenario": 22,
+      "mechanism": "assume-update-function-code-exfiltrate",
+      "title": "sts:AssumeRole, then lambda:UpdateFunctionCode, then exfiltrate through the invocation",
+      "declared_actions": [
+        "sts:AssumeRole",
+        "lambda:UpdateFunctionCode",
+        "lambda:InvokeFunction"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_22_attacker may assume arn:aws:iam::000000000000:role/scenario_22_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the escalation travels a trust relationship; the control belongs in the role's trust policy",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_22.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_22_data/reports/r01.json",
+        "as": "arn:aws:iam::000000000000:role/scenario_22_data_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for reports/r01.json'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_22_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 10,
+      "allowed_post_patch": 9,
+      "matrix_entries": 495,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_22_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_22_support_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_22_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_22_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_22_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_22_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_22_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_22_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_22_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_22_data/reports/r01.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_22_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_22_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_22_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_22_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_22_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_22_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_22_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_22_data/reports/r01.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 21,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_22_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_22_support_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": []
+    },
+    {
+      "scenario": 23,
+      "mechanism": "assume-wildcard-trust",
+      "title": "sts:AssumeRole against a role whose trust policy names Principal * (confused deputy)",
+      "declared_actions": [
+        "sts:AssumeRole",
+        "ssm:SendCommand",
+        "s3:GetObject"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "arn:aws:iam::000000000000:user/scenario_23_attacker may assume arn:aws:iam::000000000000:role/scenario_23_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the control is a wildcard Principal in a trust policy, a resource-policy matter",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_23.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_23_data/ops/backup.tar",
+        "as": "arn:aws:iam::000000000000:role/scenario_23_data_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for ops/backup.tar'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_23_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 11,
+      "allowed_post_patch": 10,
+      "matrix_entries": 660,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_23_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_23_support_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_23_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_23_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_23_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_23_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_23_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_23_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_23_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_23_data/ops/state.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_23_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_23_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_23_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_23_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_23_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_23_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_23_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_23_data/ops/state.json",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 16,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_23_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_23_support_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": []
+    },
+    {
+      "scenario": 24,
+      "mechanism": "assume-passrole-create-function",
+      "title": "sts:AssumeRole, iam:PassRole, lambda:CreateFunction, lambda:InvokeFunction",
+      "declared_actions": [
+        "sts:AssumeRole",
+        "iam:PassRole",
+        "lambda:CreateFunction",
+        "lambda:InvokeFunction"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "bound iam:PassRole in role:scenario_24_support_role/support-reach to iam:PassedToService=lambda.amazonaws.com; arn:aws:iam::000000000000:user/scenario_24_attacker may assume arn:aws:iam::000000000000:role/scenario_24_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; attached scenario_24_boundary to user scenario_24_attacker: 0 matrix-allowed pair(s), 0 literal allow statement(s) retained; attached scenario_24_boundary-scenario_24_support_role to role scenario_24_support_role: 2 matrix-allowed pair(s), 1 literal allow statement(s) retained; boundary chosen as the primary control because the role the entry principal assumes may hand on a privileged role",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_24.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_24_data/finance/close.csv",
+        "as": "arn:aws:iam::000000000000:role/scenario_24_data_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for finance/close.csv'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_24_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 13,
+      "allowed_post_patch": 12,
+      "matrix_entries": 495,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_24_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_24_support_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_24_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_24_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_24_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_24_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_24_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_24_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_24_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_24_data/finance/close.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_24_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_24_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_24_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_24_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_24_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_24_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_24_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_24_data/finance/close.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 17,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_24_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_24_support_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [],
+      "boundaries": [
+        "role/scenario_24_support_role",
+        "user/scenario_24_attacker"
+      ]
+    },
+    {
+      "scenario": 25,
+      "mechanism": "assume-send-command-plaintext-legacy-bucket",
+      "title": "sts:AssumeRole, ssm:SendCommand, then a plaintext S3 read against a legacy bucket",
+      "declared_actions": [
+        "sts:AssumeRole",
+        "ssm:SendCommand",
+        "s3:GetObject"
+      ],
+      "patched": true,
+      "exploit_blocked": true,
+      "remediation_summary": "added an aws:SecureTransport=false Deny to scenario_25_legacy; confirmed BlockPublicAccess on scenario_25_legacy; arn:aws:iam::000000000000:user/scenario_25_attacker may assume arn:aws:iam::000000000000:role/scenario_25_support_role; the grant hid behind a wildcard, so it is replaced by an explicit Deny for sts:AssumeRole; permissions boundary not applicable: the control is a bucket-policy transport condition reached through a trust relationship",
+      "diff_path": "artifacts/p4/remediation-diffs/scenario_25.json",
+      "limitations": [],
+      "pre_patch_exploited": true,
+      "pre_patch_objective": {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::scenario_25_legacy/legacy/1998-2004.dat",
+        "as": "arn:aws:iam::000000000000:role/scenario_25_data_role",
+        "via": "plaintext",
+        "result": "read 'synthetic payload for legacy/1998-2004.dat'",
+        "succeeded": true
+      },
+      "post_patch_exploited": false,
+      "post_patch_objective": {
+        "action": null,
+        "resource": null,
+        "as": null,
+        "result": "not reached",
+        "succeeded": false
+      },
+      "post_patch_blocked_at": {
+        "from": "arn:aws:iam::000000000000:user/scenario_25_attacker",
+        "action": "none",
+        "reason": "no further authorized hop from any principal the caller holds",
+        "executed": false,
+        "succeeded": false
+      },
+      "allowed_pre_patch": 16,
+      "allowed_post_patch": 11,
+      "matrix_entries": 495,
+      "flips_expected": [
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_25_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_25_legacy",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_25_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_25_legacy/legacy/1998-2004.dat",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_25_data_role",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_25_legacy",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_25_data_role",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_25_legacy/legacy/1998-2004.dat",
+          "secure_transport": false,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_25_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_25_support_role",
+          "secure_transport": true,
+          "before": "Allow",
+          "after": "ExplicitDeny"
+        }
+      ],
+      "flips_collateral": [],
+      "benign_calls": 50,
+      "benign_passed": 50,
+      "benign_failures": [],
+      "legitimate_probes": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_25_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_25_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_25_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_25_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_25_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_25_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_25_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_25_legacy/legacy/1998-2004.dat",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "legitimate_probes_kept": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_25_service",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_25_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_25_service",
+          "action": "s3:PutObject",
+          "resource": "arn:aws:s3:::scenario_25_artifacts/exports/e01.csv",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_25_service",
+          "action": "s3:ListBucket",
+          "resource": "arn:aws:s3:::scenario_25_artifacts",
+          "secure_transport": true,
+          "decision": "Allow"
+        },
+        {
+          "principal": "arn:aws:iam::000000000000:role/scenario_25_data_role",
+          "action": "s3:GetObject",
+          "resource": "arn:aws:s3:::scenario_25_legacy/legacy/1998-2004.dat",
+          "secure_transport": true,
+          "decision": "Allow"
+        }
+      ],
+      "pre_patch_hop_count": 16,
+      "cut_hops": [
+        {
+          "principal": "arn:aws:iam::000000000000:user/scenario_25_attacker",
+          "action": "sts:AssumeRole",
+          "resource": "arn:aws:iam::000000000000:role/scenario_25_support_role"
+        }
+      ],
+      "trust_narrowed": [],
+      "transport_buckets": [
+        "scenario_25_legacy"
+      ],
+      "boundaries": []
+    }
+  ]
+}

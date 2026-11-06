@@ -1,0 +1,115 @@
+{
+  "phase": 9,
+  "track": 3,
+  "title": "Atomic teardown \u2014 zero-leakage audit",
+  "generated_at_utc": "2026-11-05T18:48:32Z",
+  "account": "REDACTED_ACCOUNT",
+  "region": "us-east-1",
+  "prefix": "cb-live-",
+  "discovery": "live account sweep by name prefix (not a bookkeeping file)",
+  "resources_found_before": {
+    "iam_users": [],
+    "iam_groups": [],
+    "iam_roles": [],
+    "iam_policies": [],
+    "iam_instance_profiles": [],
+    "s3_buckets": [],
+    "lambda_functions": [],
+    "kms_aliases": [],
+    "ec2_instances": []
+  },
+  "resources_found_total": 0,
+  "deletions": [],
+  "deletion_errors": [],
+  "resources_after": {
+    "iam_users": [],
+    "iam_groups": [],
+    "iam_roles": [],
+    "iam_policies": [],
+    "iam_instance_profiles": [],
+    "s3_buckets": [],
+    "lambda_functions": [],
+    "kms_aliases": [],
+    "ec2_instances": []
+  },
+  "leaked_resources": 0,
+  "leaked_detail": {},
+  "inventory_from_wire_results": [
+    "bucket:cb-live-REDACTED_ACCOUNT-s01-d0667040-data",
+    "policy:cb-live-REDACTED_ACCOUNT-s01-d0667040-DataAccessCandidate",
+    "user:cb-live-REDACTED_ACCOUNT-s01-d0667040-attacker",
+    "role:cb-live-REDACTED_ACCOUNT-s01-d0667040-reader",
+    "user:cb-live-REDACTED_ACCOUNT-s01-d0667040-benign",
+    "policy:cb-live-REDACTED_ACCOUNT-s01-d0667040-boundary",
+    "bucket:cb-live-REDACTED_ACCOUNT-s07-d0667040-data",
+    "role:cb-live-REDACTED_ACCOUNT-s07-d0667040-pipeline",
+    "user:cb-live-REDACTED_ACCOUNT-s07-d0667040-attacker",
+    "user:cb-live-REDACTED_ACCOUNT-s07-d0667040-benign",
+    "policy:cb-live-REDACTED_ACCOUNT-s07-d0667040-boundary",
+    "bucket:cb-live-REDACTED_ACCOUNT-s15-d0667040-vault",
+    "group:cb-live-REDACTED_ACCOUNT-s15-d0667040-platform_admins",
+    "user:cb-live-REDACTED_ACCOUNT-s15-d0667040-attacker",
+    "user:cb-live-REDACTED_ACCOUNT-s15-d0667040-benign",
+    "policy:cb-live-REDACTED_ACCOUNT-s15-d0667040-boundary"
+  ],
+  "inventory_matches_sweep": false,
+  "teardown_clean": true,
+  "sweeps": [
+    {
+      "generated_at_utc": "2026-11-05T18:31:06Z",
+      "resources_found_total": 0,
+      "deletions": 0,
+      "deletion_errors": 0,
+      "leaked_resources": 0,
+      "teardown_clean": true
+    },
+    {
+      "generated_at_utc": "2026-11-05T18:31:09Z",
+      "resources_found_total": 0,
+      "deletions": 0,
+      "deletion_errors": 0,
+      "leaked_resources": 0,
+      "teardown_clean": true
+    },
+    {
+      "generated_at_utc": "2026-11-05T18:35:21Z",
+      "resources_found_total": 16,
+      "deletions": 28,
+      "deletion_errors": 0,
+      "leaked_resources": 0,
+      "teardown_clean": true
+    },
+    {
+      "generated_at_utc": "2026-11-05T18:39:32Z",
+      "resources_found_total": 5,
+      "deletions": 9,
+      "deletion_errors": 0,
+      "leaked_resources": 0,
+      "teardown_clean": true
+    },
+    {
+      "generated_at_utc": "2026-11-05T18:44:12Z",
+      "resources_found_total": 16,
+      "deletions": 28,
+      "deletion_errors": 0,
+      "leaked_resources": 0,
+      "teardown_clean": true
+    },
+    {
+      "generated_at_utc": "2026-11-05T18:48:28Z",
+      "resources_found_total": 16,
+      "deletions": 28,
+      "deletion_errors": 0,
+      "leaked_resources": 0,
+      "teardown_clean": true
+    },
+    {
+      "generated_at_utc": "2026-11-05T18:48:32Z",
+      "resources_found_total": 0,
+      "deletions": 0,
+      "deletion_errors": 0,
+      "leaked_resources": 0,
+      "teardown_clean": true
+    }
+  ]
+}
